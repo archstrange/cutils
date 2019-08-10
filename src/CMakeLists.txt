@@ -1,0 +1,5 @@
+aux_source_directory(. SRC)
+aux_source_directory(./Vector SRC)
+aux_source_directory(./Queue SRC)
+aux_source_directory(./List SRC)
+add_library(cutils ${SRC})
