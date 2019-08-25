@@ -1,0 +1,39 @@
+#ifndef CUTILS_$List$_H
+#define CUTILS_$List$_H
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
+
+typedef struct _ADT_$List$Node_ *$List$Node;
+
+void $List$Node_setValue($List$Node self, $T$ value);
+
+$T$ $List$Node_getValue($List$Node self);
+
+$List$Node $List$Node_getNext($List$Node self);
+
+typedef struct _ADT_$List$_ *$List$;
+
+$List$ $List$_new();
+
+void $List$_free($List$ self);
+
+$List$Node $List$_getHead($List$ self);
+
+$List$Node $List$_getTail($List$ self);
+
+size_t $List$_getLength($List$ self);
+
+$List$Node $List$_getPrevNode($List$ self, $List$Node cur);
+
+size_t $List$_pushFront($List$ self, $T$ value);
+
+size_t $List$_pushBack($List$ self, $T$ value);
+
+bool $List$_insertBefore($List$ self, $List$Node cur, $T$ value);
+
+bool $List$_insertAfter($List$ self, $List$Node cur, $T$ value);
+
+bool $List$_deleteNode($List$ self, $List$Node cur);
+
+#endif

@@ -1,0 +1,160 @@
+#include "$List$.h"
+
+struct _ADT_$List$_ {
+	$List$Node head, tail;
+	size_t length;
+};
+
+struct _ADT_$List$Node_ {
+	$T$ value;
+	$List$Node next;
+};
+
+static inline $List$Node $List$Node_create($T$ value, $List$Node next);
+
+static inline $List$Node $List$Node_destroy($List$Node self);
+
+void $List$Node_setValue($List$Node self, $T$ value)
+{
+	self->value = value;
+}
+
+$T$ $List$Node_getValue($List$Node self)
+{
+	return self->value;
+}
+
+$List$Node $List$Node_getNext($List$Node self)
+{
+	return self->next;
+}
+
+$List$ $List$_new()
+{
+	$List$ self = malloc(sizeof(*self));
+	self->head = self->tail = 0;
+	self->length = 0;
+	return self;
+}
+
+void $List$_free($List$ self)
+{
+	if (self != NULL) {
+		$List$Node n = self->head;
+		while (n != NULL) {
+			n = $List$Node_destroy(n);
+		}
+		free(self);
+	}
+}
+
+$List$Node $List$_getHead($List$ self)
+{
+	return self->head;
+}
+
+$List$Node $List$_getTail($List$ self)
+{
+	return self->tail;
+}
+
+size_t $List$_getLength($List$ self)
+{
+	return self->length;
+}
+
+size_t $List$_pushFront($List$ self, $T$ value)
+{
+	self->head = $List$Node_create(value, self->head);
+	if (self->length == 0) {
+		self->tail = self->head;
+	}
+	self->length += 1;
+	return self->length;
+}
+
+size_t $List$_pushBack($List$ self, $T$ value)
+{
+	$List$Node tail = $List$Node_create(value, NULL);
+	if (self->length == 0) {
+		self->head = self->tail = tail;
+	} else {
+		self->tail = self->tail->next = tail;
+	}
+	self->length += 1;
+	return self->length;
+}
+
+$List$Node $List$_getPrevNode($List$ self, $List$Node cur)
+{
+	for ($List$Node prev = self->head; prev != NULL; prev = prev->next) {
+		if (prev->next == cur) {
+			return prev;
+		}
+	}
+	return NULL;
+}
+
+bool $List$_insertBefore($List$ self, $List$Node cur, $T$ value)
+{
+	if (cur == NULL) {
+		return false;
+	}
+	$List$Node prev = $List$_getPrevNode(self, cur);
+	if (prev == NULL) {
+		if (self->head == cur) {
+			$List$_pushFront(self, value);
+		} else {
+			return false;
+		}
+	} else {
+		prev->next = $List$Node_create(value, cur);
+		self->length += 1;
+	}
+	return true;
+}
+
+bool $List$_insertAfter($List$ self, $List$Node cur, $T$ value)
+{
+	if (cur == NULL) {
+		return false;
+	}
+	cur->next = $List$Node_create(value, cur->next);
+	self->length += 1;
+	return true;
+}
+
+bool $List$_deleteNode($List$ self, $List$Node cur)
+{
+	if (cur == NULL) {
+		return false;
+	}
+	$List$Node prev = $List$_getPrevNode(self, cur);
+	if (prev == NULL) {
+		if (self->head == cur) {
+			self->head = $List$Node_destroy(self->head);
+		} else {
+			return false;
+		}
+	} else {
+		prev->next = $List$Node_destroy(cur);
+	}
+	self->length -= 1;
+	return true;
+}
+
+static inline $List$Node $List$Node_create($T$ value, $List$Node next)
+{
+	$List$Node self = malloc(sizeof(*self));
+	self->value = value;
+	self->next = next;
+	return self;
+}
+
+static inline $List$Node $List$Node_destroy($List$Node self)
+{
+	$List$Node next = self->next;
+	free(self);
+	return next;
+}
+

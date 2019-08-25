@@ -1,0 +1,116 @@
+#include "$Queue$.h"
+#include <string.h>
+
+struct _ADT_$Queue$_ {
+	size_t capacity;
+	size_t head, tail;
+	$T$ *data;
+};
+
+// Careful: `-1 % 7 == -1` is true.
+// Careful: `(0u - 1u) % 7u != 6` maybe true.
+#define LENGTH(self) (((self->capacity + self->tail) - self->head) % self->capacity)
+#define IS_FULL(self) (LENGTH(self) + 1 == self->capacity)
+#define IS_EMPTY(self) (self->head == self->tail)
+#define INCRE_HT(self, head_or_tail) \
+	self->head_or_tail = ((self->head_or_tail + 1) % self->capacity)
+#define DECRE_HT(self, head_or_tail) \
+	self->head_or_tail = (((self->capacity + self->head_or_tail) - 1) % self->capacity)
+
+static void $Queue$_resize($Queue$ self);
+
+$Queue$ $Queue$_newWithCapacity(size_t capacity)
+{
+	$Queue$ self = malloc(sizeof(*self));
+	self->capacity = capacity == 0 ? 1 : capacity;
+	self->head = self->tail = 0;
+	self->data = malloc(sizeof($T$) * self->capacity);
+	return self;
+}
+
+void $Queue$_free($Queue$ self)
+{
+	if (self) {
+		free(self->data);
+		free(self);
+	}
+}
+
+$Queue$ $Queue$_clone($Queue$ self)
+{
+	$Queue$ c = $Queue$_newWithCapacity(self->capacity);
+	memcpy(c->data, self->data, self->capacity * sizeof($T$));
+	return c;
+}
+
+bool $Queue$_empty($Queue$ self)
+{
+	return IS_EMPTY(self);
+}
+
+bool $Queue$_full($Queue$ self)
+{
+	return IS_FULL(self);
+}
+
+size_t $Queue$_length($Queue$ self)
+{
+	return LENGTH(self);
+}
+
+$T$ $Queue$_popFront($Queue$ self)
+{
+	$T$ v;
+	if (IS_EMPTY(self)) {
+		v = self->data[self->tail];
+	} else {
+		v = self->data[self->head];
+		INCRE_HT(self, head);
+	}
+	return v;
+}
+
+$T$ $Queue$_popBack($Queue$ self)
+{
+	if (!IS_EMPTY(self)) {
+		DECRE_HT(self, tail);
+	}
+	return self->data[self->tail];
+}
+
+void $Queue$_pushFront($Queue$ self, $T$ value)
+{
+	if (IS_FULL(self)) {
+		$Queue$_resize(self);
+	}
+	DECRE_HT(self, head);
+	self->data[self->head] = value;
+}
+
+void $Queue$_pushBack($Queue$ self, $T$ value)
+{
+	if (IS_FULL(self)) {
+		$Queue$_resize(self);
+	}
+	self->data[self->tail] = value;
+	INCRE_HT(self, tail);
+}
+
+static void $Queue$_resize($Queue$ self)
+{
+	size_t ns = 2 * self->capacity;
+	$T$ *tmp = malloc(ns * sizeof($T$));
+	if (!IS_EMPTY(self)) {
+		if (self->head < self->tail) {
+			memcpy(tmp, self->data + self->head,
+			       (self->tail - self->head) * sizeof($T$));
+		} else {
+			size_t hc = self->capacity - self->head;
+			memcpy(tmp, self->data + self->head, hc * sizeof($T$));
+			memcpy(tmp + hc, self->data, self->tail * sizeof($T$));
+		}
+	}
+	free(self->data);
+	self->data = tmp;
+}
+

@@ -1,0 +1,29 @@
+#ifndef CUTILS_$Queue$_H
+#define CUTILS_$Queue$_H
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
+
+typedef struct _ADT_$Queue$_ *$Queue$;
+
+$Queue$ $Queue$_newWithCapacity(size_t capacity);
+
+$Queue$ $Queue$_clone($Queue$ self);
+
+void $Queue$_free($Queue$ self);
+
+bool $Queue$_empty($Queue$ self);
+
+size_t $Queue$_length($Queue$ self);
+
+bool $Queue$_full($Queue$ self);
+
+$T$ $Queue$_popFront($Queue$ self);
+
+$T$ $Queue$_popBack($Queue$ self);
+
+void $Queue$_pushFront($Queue$ self, $T$ value);
+
+void $Queue$_pushBack($Queue$ self, $T$ value);
+
+#endif
