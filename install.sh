@@ -9,6 +9,9 @@ fi
 include=$install_dir/include/cutils
 lib=$install_dir/lib
 
+if [ -d $include ]; then
+	rm -rf $include
+fi
 mkdir -p $lib
 
 sub_dirs="Vector List Queue"
