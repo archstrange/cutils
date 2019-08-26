@@ -14,12 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-/*
- * ANSI Escaped Code
- * Wikipedia: https://en.wikipedia.org/wiki/ANSI_escape_code
- */
 #ifndef CUTILS_CPRINT_H
 #define CUTILS_CPRINT_H
+
+/// ANSI Escaped Code
+/// Wikipedia: https://en.wikipedia.org/wiki/ANSI_escape_code
 
 #define CSI				"\x1b["
 #define _				";"
