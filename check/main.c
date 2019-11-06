@@ -22,6 +22,8 @@
 
 #include "../src/xopt.h"
 #include "../src/utf-8.h"
+#include "../src/Str.h"
+#include "../src/fs/Path.h"
 
 void test_xopt(int argc, const char *argv[])
 {/*{{{*/
@@ -63,7 +65,7 @@ void test_xopt(int argc, const char *argv[])
 }/*}}}*/
 
 void test_utf8()
-{
+{/*{{{*/
 	uint8_t *yes = "✅";
 	uint32_t yes_cp = 0x2705;
 	uint8_t *no = "❌";
@@ -79,11 +81,29 @@ void test_utf8()
 	assert(cp == no_cp);
 	utf8_char(cp, u);
 	assert(strcmp(u, no) == 0);
-}
+}/*}}}*/
+
+void test_fs_path()
+{/*{{{*/
+#define originPath "/home/qijian/../qijian/bench/c/cutils/././src/../"
+#define refinedPath "/home/qijian/bench/c/cutils"
+	Str ps = Str_newFromCStr(originPath);
+	Path p = Path_new(ps);
+	Path_refine(p);
+	Path_getStr(p, ps);
+
+	assert(Path_isAbs(p));
+	assert(CStr_len(refinedPath) == Str_getLength(ps));
+	assert(strncmp(refinedPath, Str_data(ps), Str_getLength(ps)) == 0);
+
+	Str_free(ps);
+	Path_free(p);
+}/*}}}*/
 
 int main(int argc, const char *argv[])
 {
 	test_utf8();
+	test_fs_path();
 
 	return 0;
 }
