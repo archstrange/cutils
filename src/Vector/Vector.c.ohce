@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+// This file is generated from Vector.c.ohce by ohce.
 #include "$Vector$.h"
+$c_include$
 #include <string.h>
 
 struct _ADT_$Vector$ {
@@ -22,53 +24,100 @@ struct _ADT_$Vector$ {
 	$T$ *data;
 };
 
-static inline void $Vector$_realloc($Vector$ self);
+static inline void $Vector$_realloc($Vector$ self, size_t new_capacity);
+static inline void $Vector$_init($Vector$ self, size_t capacity);
+static inline void $Vector$_final($Vector$ self);
+
+$Vector$ $Vector$_new()
+{
+	return $Vector$_newWithCapacity(1);
+}
 
 $Vector$ $Vector$_newWithCapacity(size_t capacity)
 {
 	$Vector$ self = malloc(sizeof(*self));
-	self->capacity = capacity == 0 ? 1 : capacity;
-	self->length = 0;
-	self->data = malloc(sizeof($T$) * self->capacity);
+	$Vector$_init(self, capacity);
 	return self;
 }
 
 $Vector$ $Vector$_newFromArray(const $T$ *array, size_t length)
 {
 	$Vector$ self = $Vector$_newWithCapacity(length);
+/* if T_clone */
+	for (size_t i = 0; i < length; i++) {
+		self->data[i] = $T_clone$(array[i]);
+	}
+/* else */
 	memcpy(self->data, array, sizeof($T$) * length);
+/* endif */
 	self->length = length;
 	return self;
 }
 
 $Vector$ $Vector$_clone($Vector$ src)
 {
-	$Vector$ dst = malloc(sizeof(*dst));
-	dst->length = dst->capacity = src->length;
-	dst->data = malloc(sizeof($T$) * dst->length);
-	for (size_t i = 0; i < dst->length; i++) {
-		dst->data[i] = src->data[i];
+	return $Vector$_newFromArray(src->data, src->length);
+}
+
+void $Vector$_copy($Vector$ self, $Vector$ src)
+{
+	$Vector$_copySub(self, src, 0, src->length);
+}
+
+void $Vector$_copyn($Vector$ self, $Vector$ src, size_t n)
+{
+	$Vector$_copySub(self, src, 0, n);
+}
+
+void $Vector$_copySub($Vector$ self, $Vector$ src, size_t start, size_t n)
+{
+	if (self == src)
+		return;
+	$Vector$_final(self);
+	if (start >= src->length) {
+		$Vector$_init(self, 1);
+		return;
 	}
-	return dst;
-}
-
-void $Vector$_dump($Vector$ self, $T$ *buffer)
-{
-	memcpy(buffer, self->data, sizeof($T$) * self->length);
-}
-
-void $Vector$_dumpn($Vector$ self, $T$ *buffer, size_t n)
-{
-	n = self->length < n ? self->length : n;
-	memcpy(buffer, self->data, sizeof($T$) * n);
+	n = start + n > src->length ? n : src->length - start;
+	$Vector$_init(self, n);
+/* if T_clone */
+	for (size_t i = 0; i < n; i++) {
+		self->data[i] = $T_clone$(src->data[i + start]);
+	}
+/* else */
+	memcpy(self->data, src->data + start, sizeof($T$) * n);
+/* endif */
+	self->length = n;
 }
 
 void $Vector$_free($Vector$ self)
 {
 	if (self) {
-		free(self->data);
+		$Vector$_final(self);
 		free(self);
 	}
+}
+
+void $Vector$_dump($Vector$ self, $T$ *buffer)
+{
+	$Vector$_dumpn(self, buffer, self->length);
+}
+
+void $Vector$_dumpn($Vector$ self, $T$ *buffer, size_t n)
+{
+	n = self->length < n ? self->length : n;
+/* if T_copy */
+/* if T_clone */
+	for (size_t i = 0; i < n; i++) {
+		if (buffer[i] == NULL)
+			buffer[i] = $T_clone$(self->data[i]);
+		else
+			$T_copy$(buffer[i], self->data[i]);
+	}
+/* endif */
+/* else */
+	memcpy(buffer, self->data, sizeof($T$) * n);
+/* endif */
 }
 
 bool $Vector$_empty($Vector$ self)
@@ -81,14 +130,46 @@ size_t $Vector$_getLength($Vector$ self)
 	return self->length;
 }
 
+void $Vector$_setLength($Vector$ self, size_t length)
+{
+	if (length > self->capacity) {
+		$Vector$_realloc(self, length);
+	}
+/* if T_new */
+/* if T_free */
+	if (length > self->length) {
+		for (size_t i = self->length; i < length; i++) {
+			self->data[i] = $T_new$();
+		}
+	} else {
+		for (size_t i = length; i < self->length; i++) {
+			$T_free$(self->data[i]);
+		}
+	}
+/* endif */
+/* endif */
+	self->length = length;
+}
+
 void $Vector$_clear($Vector$ self)
 {
+/* if T_free */
+	for (size_t i = 0; i < self->length; i++) {
+		$T_free$(self->data[i]);
+	}
+/* endif */
 	self->length = 0;
 }
 
 void $Vector$_eraseTail($Vector$ self, size_t count)
 {
-	self->length -= count > self->length ? self->length : count;
+	count = count > self->length ? self->length : count;
+/* if T_free */
+	for (size_t i = self->length - count; i < self->length; i++) {
+		$T_free$(self->data[i]);
+	}
+/* endif */
+	self->length -= count;
 }
 
 size_t $Vector$_getCapacity($Vector$ self)
@@ -98,10 +179,9 @@ size_t $Vector$_getCapacity($Vector$ self)
 
 void $Vector$_setCapacity($Vector$ self, size_t capacity)
 {
-	if (self->capacity == capacity)
-		return;
-	self->capacity = capacity == 0 ? 1 : capacity;
-	$Vector$_realloc(self);
+	capacity = capacity == 0 ? 1 : capacity;
+	if (self->capacity == capacity) return;
+	$Vector$_realloc(self, capacity);
 }
 
 void $Vector$_shrink($Vector$ self)
@@ -111,7 +191,11 @@ void $Vector$_shrink($Vector$ self)
 
 void $Vector$_set($Vector$ self, size_t index, $T$ value)
 {
+/* if T_copy */
+	$T_copy$(self->data[index], value);
+/* else */
 	self->data[index] = value;
+/* endif */
 }
 
 $T$ $Vector$_get($Vector$ self, size_t index)
@@ -123,13 +207,20 @@ size_t $Vector$_insert($Vector$ self, size_t index, $T$ value)
 {
 	if (index >= self->length)
 		return self->length;
-	$Vector$_push(self, value);
-	size_t i = self->length - 1;
+	if (self->length >= self->capacity) {
+		$Vector$_realloc(self, self->capacity * 2);
+	}
+	size_t i = self->length;
 	while (i > index) {
 		self->data[i] = self->data[i - 1];
 		i -= 1;
 	}
+/* if T_clone */
+	self->data[i] = $T_clone$(value);
+/* else */
 	self->data[i] = value;
+/* endif */
+	self->length += 1;
 	return self->length;
 }
 
@@ -141,29 +232,27 @@ $T$ *$Vector$_data($Vector$ self)
 size_t $Vector$_push($Vector$ self, $T$ value)
 {
 	if (self->length >= self->capacity) {
-		self->capacity *= 2;
-		$Vector$_realloc(self);
+		$Vector$_realloc(self, self->capacity * 2);
 	}
+/* if T_clone */
+	self->data[self->length] = $T_clone$(value);
+/* else */
 	self->data[self->length] = value;
+/* endif */
 	self->length += 1;
 	return self->length;
 }
 
 $T$ $Vector$_pop($Vector$ self)
 {
-	self->length -= 1;
+	if (self->length > 0) 
+		self->length -= 1;
 	return self->data[self->length];
 }
 
-size_t $Vector$_append($Vector$ self, $Vector$ vec)
+size_t $Vector$_append($Vector$ self, $Vector$ src)
 {
-	if (self->length + vec->length > self->capacity) {
-		self->capacity += vec->length;
-		$Vector$_realloc(self);
-	}
-	memcpy(self->data + self->length, vec->data, sizeof($T$) * vec->length);
-	self->length += vec->length;
-	return self->length;
+	return $Vector$_appendArray(self, src->data, src->length);
 }
 
 size_t $Vector$_appendArray($Vector$ self, const $T$ *a, size_t count)
@@ -172,46 +261,51 @@ size_t $Vector$_appendArray($Vector$ self, const $T$ *a, size_t count)
 		return self->length;
 	}
 	if (self->length + count > self->capacity) {
-		self->capacity += count;
-		$Vector$_realloc(self);
+		$Vector$_realloc(self, self->capacity + count);
 	}
+/* if T_clone */
+	for (size_t i = 0; i < count; i++) {
+		self->data[self->length + i] = $T_clone$(a[i]);
+	}
+/* else */
 	memcpy(self->data + self->length, a, sizeof($T$) * count);
+/* endif */
 	self->length += count;
 	return self->length;
 }
 
-void $Vector$_copy($Vector$ self, $Vector$ src)
+static inline void $Vector$_realloc($Vector$ self, size_t new_capacity)
 {
-	$Vector$_copyn(self, src, src->length);
-}
-
-void $Vector$_copyn($Vector$ self, $Vector$ src, size_t n)
-{
-	if (self == src)
-		return;
-
-	if (src->length == 0 || n == 0) {
-		self->length = 0;
-		return;
-	}
-
-	n = src->length < n ? src->length : n;
-	if (self->capacity < n) {
-		free(self->data);
-		self->data = malloc(sizeof($T$) * n);
-	}
-	memcpy(self->data, src->data, sizeof($T$) * n);
-	self->length = n;
-}
-
-static inline void $Vector$_realloc($Vector$ self)
-{
-	$T$ *tmp = malloc(sizeof($T$) * self->capacity);
-	if (self->length > self->capacity) {
-		self->length = self->capacity;
+	$T$ *tmp = calloc(new_capacity, sizeof($T$));
+	if (self->length > new_capacity) {
+/* if T_free */
+		for (size_t i = new_capacity; i < self->length; i++) {
+			$T_free$(self->data[i]);
+		}
+/* endif */
+		self->length = new_capacity;
 	}
 	memcpy(tmp, self->data, sizeof($T$) * self->length);
 	free(self->data);
 	self->data = tmp;
+	self->capacity = new_capacity;
+}
+
+static inline void $Vector$_init($Vector$ self, size_t capacity)
+{
+	self->capacity = capacity == 0 ? 1 : capacity;
+	self->length = 0;
+	self->data = calloc(self->capacity, sizeof($T$));
+}
+
+static inline void $Vector$_final($Vector$ self)
+{
+/* if T_free */
+	for (size_t i = 0; i < self->length; i++) {
+		$T_free$(self->data[i]);
+	}
+/* endif */
+	free(self->data);
+	self->length = self->capacity = 0;
 }
 
