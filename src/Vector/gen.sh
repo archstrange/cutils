@@ -15,16 +15,25 @@ EOF
 }
 EOF
 	done
+	ohce Vector.${t}.ohce > F32Vector.${t} <<EOF
+{
+	Vector "F32Vector"
+	T "float"
+}
+EOF
+	ohce Vector.${t}.ohce > F64Vector.${t} <<EOF
+{
+	Vector "F64Vector"
+	T "double"
+}
+EOF
+	ohce Vector.${t}.ohce > Str.${t} <<EOF
+{
+	Vector "Str"
+	T "uint8_t"
+}
+EOF
 done
-
-echo '{Vector "Str" T "uint8_t"}' | ohce Vector.h.ohce > Str.h
-echo '{Vector "Str" T "uint8_t"}' | ohce Vector.c.ohce > Str.c
-
-echo '{Vector "F32Vector" T "float"}' | ohce Vector.h.ohce > F32Vector.h
-echo '{Vector "F32Vector" T "float"}' | ohce Vector.c.ohce > F32Vector.c
-
-echo '{Vector "F64Vector" T "double"}' | ohce Vector.h.ohce > F64Vector.h
-echo '{Vector "F64Vector" T "double"}' | ohce Vector.c.ohce > F64Vector.c
 
 for t in h c; do
 	ohce Vector.${t}.ohce > StrVector.${t} <<EOF
