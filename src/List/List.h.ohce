@@ -14,42 +14,67 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+// This file is generated from List.h.ohce by ohce.
+/* if not T */
+// ADT template type List: a double linked list type.
+/* endif */
 #ifndef CUTILS_$List$_H
 #define CUTILS_$List$_H
+$h_include$
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
 
-typedef struct _ADT_$List$Node_ *$List$Node;
-
-void $List$Node_setValue($List$Node self, $T$ value);
-
-$T$ $List$Node_getValue($List$Node self);
-
-$List$Node $List$Node_getNext($List$Node self);
-
+/// $List$: a double linked list type.
 typedef struct _ADT_$List$_ *$List$;
 
+/// $List$Node: $List$ node type.
+typedef struct _ADT_$List$Node_ *$List$Node;
+
+/// Set the data hold by @self to @value.
+void $List$Node_set($List$Node self, $T$ value);
+
+/// Get the data hold by @self.
+$T$ $List$Node_get($List$Node self);
+
+/// Get next node. If @self is tail-node, NULL will be returned.
+$List$Node $List$Node_getNext($List$Node self);
+
+/// Get previous node. If @self is head-node, NULL will be returned.
+$List$Node $List$Node_getPrev($List$Node self);
+
+/// Create a new node that hold @value and insert it as
+/// @self's previous node.
+$List$Node $List$Node_insertPrev($List$Node self, $T$ value);
+
+/// Create a new node that hold @value and insert it as
+/// @self's next node.
+$List$Node $List$Node_insertNext($List$Node self, $T$ value);
+
+/// Delete this node from list.
+size_t $List$Node_delete($List$Node self);
+
+/// Create a new empty $List$ object.
 $List$ $List$_new();
 
+$List$ $List$_clone($List$ src);
+
+void $List$_copy($List$ self, $List$ src);
+
+/// Free @self.
 void $List$_free($List$ self);
 
+/// Get head node.
 $List$Node $List$_getHead($List$ self);
 
+/// Get tail node.
 $List$Node $List$_getTail($List$ self);
 
+/// Get the number of nodes.
 size_t $List$_getLength($List$ self);
-
-$List$Node $List$_getPrevNode($List$ self, $List$Node cur);
 
 size_t $List$_pushFront($List$ self, $T$ value);
 
 size_t $List$_pushBack($List$ self, $T$ value);
-
-bool $List$_insertBefore($List$ self, $List$Node cur, $T$ value);
-
-bool $List$_insertAfter($List$ self, $List$Node cur, $T$ value);
-
-bool $List$_deleteNode($List$ self, $List$Node cur);
 
 #endif
