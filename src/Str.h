@@ -17,6 +17,7 @@
 #ifndef CUTILS_STR_H
 #define CUTILS_STR_H
 #include "Vector/Str.h"
+#include <stdio.h>
 
 static inline size_t CStr_len(const char *cstr)
 {
