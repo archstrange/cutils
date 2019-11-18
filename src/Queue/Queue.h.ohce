@@ -14,32 +14,66 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+// This file is generated from Queue.h.ohce by ohce.
+/* if not T */
+// ADT template type: A cycled queue type.
+/* endif */
 #ifndef CUTILS_$Queue$_H
 #define CUTILS_$Queue$_H
+$h_include$
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
 
+/// $Queue$: a cycled queue type.
 typedef struct _ADT_$Queue$_ *$Queue$;
 
+/// Create a new $Queue$ object.
+$Queue$ $Queue$_new();
+
+/// Create a new $Queue$ object with size @capacity.
 $Queue$ $Queue$_newWithCapacity(size_t capacity);
 
 $Queue$ $Queue$_clone($Queue$ self);
 
+void $Queue$_copy($Queue$ self, $Queue$ src);
+
+/// Free @self.
 void $Queue$_free($Queue$ self);
 
+/// Check if @self is empty.
 bool $Queue$_empty($Queue$ self);
 
-size_t $Queue$_length($Queue$ self);
-
+/// Check if @self is full.
 bool $Queue$_full($Queue$ self);
 
-$T$ $Queue$_popFront($Queue$ self);
+/// Get the current number of elements in queue @self.
+size_t $Queue$_length($Queue$ self);
 
-$T$ $Queue$_popBack($Queue$ self);
+/// Get the @index'th element in queue @self.
+///
+/// Index started from head(indexed by 0) and should less then
+/// @self's length, otherwise returned value is undefined.
+$T$ $Queue$_get($Queue$ self, size_t index);
 
-void $Queue$_pushFront($Queue$ self, $T$ value);
+/// Set the @index'th element.
+///
+/// If @index is not less then @self's length, nothing
+/// will be done.
+void $Queue$_set($Queue$ self, size_t index, $T$ value);
 
-void $Queue$_pushBack($Queue$ self, $T$ value);
+/// Pop head element.
+/// Returned value is undefined if @self is empty.
+$T$ $Queue$_popHead($Queue$ self);
+
+/// Pop tail element.
+/// Returned value is undefined if @self is empty.
+$T$ $Queue$_popTail($Queue$ self);
+
+/// Push @value to head of @self.
+void $Queue$_pushHead($Queue$ self, $T$ value);
+
+/// Push @value to tail of @self.
+void $Queue$_pushTail($Queue$ self, $T$ value);
 
 #endif
