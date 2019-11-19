@@ -61,33 +61,30 @@ $Vector$ $Vector$_clone($Vector$ src)
 
 void $Vector$_copy($Vector$ self, $Vector$ src)
 {
-	$Vector$_copySub(self, src, 0, src->length);
+	if (self == src) return;
+	$Vector$_copyArray(self, src->data, src->length);
 }
 
-void $Vector$_copyn($Vector$ self, $Vector$ src, size_t n)
+void $Vector$_copyArray($Vector$ self, $T$ const *array, size_t n)
 {
-	$Vector$_copySub(self, src, 0, n);
+	$Vector$_final(self);
+	$Vector$_init(self, n);
+/* if T_clone */
+	for (size_t i = 0; i < n; i++) {
+		self->data[i] = $T_clone$(array[i]);
+	}
+/* else */
+	memcpy(self->data, array, sizeof($T$) * n);
+/* endif */
+	self->length = n;
 }
 
 void $Vector$_copySub($Vector$ self, $Vector$ src, size_t start, size_t n)
 {
-	if (self == src)
-		return;
-	$Vector$_final(self);
-	if (start >= src->length) {
-		$Vector$_init(self, 1);
-		return;
+	if (self != src && start < src->length) {
+		n = start + n < src->length ? n : src->length - start;
+		$Vector$_copyArray(self, src->data + start, n);
 	}
-	n = start + n > src->length ? n : src->length - start;
-	$Vector$_init(self, n);
-/* if T_clone */
-	for (size_t i = 0; i < n; i++) {
-		self->data[i] = $T_clone$(src->data[i + start]);
-	}
-/* else */
-	memcpy(self->data, src->data + start, sizeof($T$) * n);
-/* endif */
-	self->length = n;
 }
 
 void $Vector$_free($Vector$ self)

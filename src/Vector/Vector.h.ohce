@@ -51,9 +51,15 @@ $Vector$ $Vector$_clone($Vector$ src);
 void $Vector$_copy($Vector$ self, $Vector$ src);
 
 /// Copy the first @n elements of @src to @self.
-void $Vector$_copyn($Vector$ self, $Vector$ src, size_t n);
+void $Vector$_copyArray($Vector$ self, $T$ const *array, size_t n);
 
 /// Copy @n elements of @src started at @start to @self.
+///
+/// If @start is greater than @self's length or @self and @src
+/// are the same object, nothing will be done.
+///
+/// If @src has not enough elements from @start, `$Vector$_copySub`
+/// will stop after it copyed the last element.
 void $Vector$_copySub($Vector$ self, $Vector$ src, size_t start, size_t n);
 
 /// Lifetime function: free @self object.
