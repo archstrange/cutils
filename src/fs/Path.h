@@ -17,7 +17,7 @@
 #ifndef CUTILS_FS_PATH_H
 #define CUTILS_FS_PATH_H
 #include <stdbool.h>
-#include "../Vector/Str.h"
+#include "../Str.h"
 
 typedef struct Path *Path;
 
@@ -30,7 +30,8 @@ enum {
 
 /// Create a new Path object from Str @source.
 ///
-/// @source can not be NULL or empty, otherwise NULL will be returned.
+/// If @source is NULL or empty, a current working path
+/// will be returned(same as `Path_newCurrentWorkPath`.
 Path Path_new(Str source);
 
 /// Create a new Path object with current process work directory.
@@ -40,10 +41,6 @@ Path Path_clone(Path src);
 
 /// Copy the content of @src to @self.
 void Path_copy(Path self, Path src);
-
-/// Move dynamic memory.
-/// @tmp is no longer valid after this call.
-void Path_mvmem(Path self, Path tmp);
 
 void Path_free(Path self);
 
@@ -60,18 +57,19 @@ bool Path_isAbs(Path self);
 /// If @self is absolute path already, nothing will be done.
 void Path_convertToAbs(Path self, Path current);
 
+/// Like shell `cd` command.
 void Path_cd(Path self, Path p);
+
+/// Append @filename to @self, @filename must be a single
+/// file name(contains no '/' chars).
+void Path_append(Path self, Str filename);
 
 /// Try to remove '.' and '..' nodes from @self.
 void Path_refine(Path self);
 
+/// Get the string path of @self, so you can use @str
+/// to open a DIR of FILE.
 void Path_getStr(Path self, Str str);
-
-/// Check if @self exists at the local file system.
-bool Path_exist(Path self);
-
-/// Check the file type addressed by @self at the local file system.
-int Path_fileType(Path self);
 
 #endif
 

@@ -15,24 +15,22 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "Path.h"
-#include "../Vector/PtrVector.h"
+#include "../Vector/StrVector.h"
 #include <unistd.h>
 #include <string.h>
 
 struct Path {
 	bool is_abs;
-	PtrVector nodes;
+	StrVector nodes;
 };
 
-static PtrVector construct_nodes(const char *path, size_t len);
-static PtrVector clone_nodes(PtrVector nodes);
-static inline void free_nodes(PtrVector nodes);
+static StrVector construct_nodes(const char *path, size_t len);
 
 Path Path_new(Str source)
 {
 	size_t len = Str_getLength(source);
 	if (source == NULL || len == 0) {
-		return NULL;
+		return Path_newCurrentWorkPath();
 	}
 
 	Path self = malloc(sizeof(*self));
@@ -57,28 +55,22 @@ Path Path_clone(Path src)
 {
 	Path self = malloc(sizeof(*self));
 	self->is_abs = src->is_abs;
-	self->nodes = clone_nodes(src->nodes);
+	self->nodes = StrVector_clone(src->nodes);
 	return self;
 }
 
 void Path_copy(Path self, Path src)
 {
-	free_nodes(self->nodes);
-	self->nodes = clone_nodes(src->nodes);
+	if (self == src)
+		return;
+	StrVector_copy(self->nodes, src->nodes);
 	self->is_abs = src->is_abs;
-}
-
-void Path_mvmem(Path self, Path tmp)
-{
-	free_nodes(self->nodes);
-	*self = *tmp;
-	free(tmp);
 }
 
 void Path_free(Path self)
 {
 	if (self != NULL) {
-		free_nodes(self->nodes);
+		StrVector_free(self->nodes);
 		free(self);
 	}
 }
@@ -102,18 +94,23 @@ void Path_convertToAbs(Path self, Path current)
 		Path_cd(new, current);
 	}
 	Path_cd(new, self);
-	Path_mvmem(self, new);
+	StrVector_free(self->nodes);
+	*self = *new;
+	free(new);
 }
 
 void Path_cd(Path self, Path p)
 {
 	if (p->is_abs) {
-		self->is_abs = true;
-		free_nodes(self->nodes);
-		self->nodes = clone_nodes(p->nodes);
+		Path_copy(self, p);
 	} else {
-		PtrVector_append(self->nodes, p->nodes);
+		StrVector_append(self->nodes, p->nodes);
 	}
+}
+
+void Path_append(Path self, Str filename)
+{
+	StrVector_push(self->nodes, filename);
 }
 
 void Path_refine(Path self)
@@ -126,46 +123,46 @@ void Path_refine(Path self)
 	if (!self->is_abs)
 		return;
 
-	void **nodes = PtrVector_data(self->nodes);
-	size_t len = PtrVector_getLength(self->nodes);
+	Str *nodes = StrVector_data(self->nodes);
+	size_t len = StrVector_getLength(self->nodes);
 	if (len == 0)
 		return;
 
-	PtrVector newnodes = PtrVector_newWithCapacity(0);
+	StrVector newnodes = StrVector_newWithCapacity(0);
 	for (size_t i = 0; i < len; i++) {
-		if (IS_DOT(nodes[i])) {
-			Str_free(nodes[i]);
-		} else if (IS_DOTDOT(nodes[i])) {
-			Str_free(nodes[i]);
-			if (PtrVector_getLength(newnodes) != 0) {
-				Str_free(PtrVector_pop(newnodes));
+		if (IS_DOTDOT(nodes[i])) {
+			size_t nlen = StrVector_getLength(newnodes);
+			if (nlen != 0) {
+				StrVector_setLength(newnodes, nlen - 1);
 			}
-		} else {
-			PtrVector_push(newnodes, nodes[i]);
+		} else if (!IS_DOT(nodes[i])){
+			StrVector_push(newnodes, nodes[i]);
 		}
 	}
-	PtrVector_free(self->nodes);
+	StrVector_free(self->nodes);
 	self->nodes = newnodes;
 }
 
 void Path_getStr(Path self, Str str)
 {
 	Str_clear(str);
-	if (self->is_abs)
+	size_t len = StrVector_getLength(self->nodes);
+	Str *data = StrVector_data(self->nodes);
+
+	if (!self->is_abs)
+		Str_push(str, '.');
+	else if (len == 0)
 		Str_push(str, '/');
 
-	size_t len = PtrVector_getLength(self->nodes);
-	void **data = PtrVector_data(self->nodes);
 	for (size_t i = 0; i < len; i++) {
-		Str_append(str, data[i]);
 		Str_push(str, '/');
+		Str_append(str, data[i]);
 	}
-	Str_pop(str);
 }
 
-static PtrVector construct_nodes(const char *path, size_t len)
+static StrVector construct_nodes(const char *path, size_t len)
 {
-	PtrVector nodes = PtrVector_newWithCapacity(0);
+	StrVector nodes = StrVector_newWithCapacity(0);
 	for (size_t i = 0; i < len; i++) {
 		if (path[i] == '/') {
 			continue;
@@ -174,33 +171,9 @@ static PtrVector construct_nodes(const char *path, size_t len)
 		while (j < len && path[j] != '/') {
 			j += 1;
 		}
-		PtrVector_push(nodes, Str_newFromArray(&path[i], j - i));
+		StrVector_push(nodes, Str_newFromArray(&path[i], j - i));
 		i = j;
 	}
 	return nodes;
-}
-
-static PtrVector clone_nodes(PtrVector nodes)
-{
-	size_t len = PtrVector_getLength(nodes);
-	PtrVector new = PtrVector_newWithCapacity(len);
-	void **data = PtrVector_data(nodes);
-	void **new_data = PtrVector_data(new);
-	for (size_t i = 0; i < len; i++) {
-		new_data[i] = Str_clone(data[i]);
-	}
-	return new;
-}
-
-static inline void free_nodes(PtrVector nodes)
-{
-	if (nodes == NULL)
-		return;
-	size_t len = PtrVector_getLength(nodes);
-	void **data = PtrVector_data(nodes);
-	for (size_t i = 0; i < len; i++) {
-		Str_free(data[i]);
-	}
-	PtrVector_free(nodes);
 }
 
