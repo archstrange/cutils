@@ -34,6 +34,8 @@ enum {
 /// will be returned(same as `Path_newCurrentWorkPath`.
 Path Path_new(Str source);
 
+Path Path_newFromCStr(const char *source);
+
 /// Create a new Path object with current process work directory.
 Path Path_newCurrentWorkPath();
 
@@ -63,6 +65,13 @@ void Path_cd(Path self, Path p);
 /// Append @filename to @self, @filename must be a single
 /// file name(contains no '/' chars).
 void Path_append(Path self, Str filename);
+
+static inline void Path_appendCStrName(Path self, const char *filename)
+{
+	Str fn = Str_newFromCStr(filename);
+	Path_append(self, fn);
+	Str_free(fn);
+}
 
 /// Try to remove '.' and '..' nodes from @self.
 void Path_refine(Path self);

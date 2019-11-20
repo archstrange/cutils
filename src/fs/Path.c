@@ -39,6 +39,14 @@ Path Path_new(Str source)
 	return self;
 }
 
+Path Path_newFromCStr(const char *source)
+{
+	Str s = Str_newFromArray(source, strlen(source));
+	Path p = Path_new(s);
+	Str_free(s);
+	return p;
+}
+
 Path Path_newCurrentWorkPath()
 {
 	char *cwd = getcwd(NULL, 0);
