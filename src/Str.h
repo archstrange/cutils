@@ -79,4 +79,24 @@ static inline size_t Str_echo(Str self, FILE *out)
 	return s;
 }
 
+static inline size_t Str_readFile(Str self, FILE *fp)
+{
+	int c;
+	Str_clear(self);
+	while ((c = getc(fp)) != EOF) {
+		Str_push(self, c);
+	}
+	return Str_getLength(self);
+}
+
+static inline size_t Str_readLine(Str self, FILE *fp)
+{
+	int c;
+	Str_clear(self);
+	while ((c = getc(fp)) != EOF && c != '\n') {
+		Str_push(self, c);
+	}
+	return Str_getLength(self);
+}
+
 #endif
