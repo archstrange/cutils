@@ -35,7 +35,16 @@
 /// UTF8-tail   = %x80-BF
 
 #define IN_RANGE(c, min, max) ((c) >= (min) && (c) <= (max))
-#define IS_TAIL(c) IN_RANGE(c, 0x80, 0xBF)
+#define IS_TAIL(c) (OCT_TAIL[c])
+static inline void copy_us(uint8_t *us, const uint8_t *u, size_t len);
+
+const static uint8_t OCT_TAIL[256] = {
+	[80] = // 80-BF
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+};
 
 const static uint8_t OCT_HEAD[256] = {
 	// 00-7F: 0YYY YYYY, 7F
@@ -71,6 +80,20 @@ const static uint8_t OCT_HEAD[256] = {
 	// F4
 	               43,
 };
+
+int utf8_validate_s(const uint8_t *u, size_t len)
+{
+	uint8_t us[5];
+	copy_us(us, u, len);
+	return utf8_validate(us);
+}
+
+int utf8_codepoint_s(const uint8_t *u, size_t len, uint32_t *cp)
+{
+	uint8_t us[5];
+	copy_us(us, u, len);
+	return utf8_codepoint(us, cp);
+}
 
 int utf8_validate(const uint8_t *u)
 {
@@ -200,5 +223,15 @@ int utf8_char(uint32_t cp, uint8_t u[5])
 bool utf8_cp_validate(uint32_t cp)
 {
 	return !(cp >> 21u);
+}
+
+static inline void copy_us(uint8_t *us, const uint8_t *u, size_t len)
+{
+	for (size_t i = 0; i < 5 && i < len; i++) {
+		us[i] = u[i];
+	}
+	for (size_t i = len; i < 5; i++) {
+		us[i] = 0;
+	}
 }
 

@@ -17,15 +17,20 @@
 #ifndef CUTILS_UTF_8_H
 #define CUTILS_UTF_8_H
 #include <stdint.h>
+#include <stdlib.h>
 #include <stdbool.h>
 
 /// Validate UTF-8 char, return number of bytes of first char
 /// pointed by @u, 0 for invalid char.
 int utf8_validate(const uint8_t *u);
 
+int utf8_validate_s(const uint8_t *u, size_t len);
+
 /// Get code point of UTF-8 char pointed by @utf8.
 /// Return UTF-8 char byte-length, 0 for invalid encoding.
-int utf8_codepoint(const uint8_t *utf8, uint32_t *cp);
+int utf8_codepoint(const uint8_t *u, uint32_t *cp);
+
+int utf8_codepoint_s(const uint8_t *u, size_t len, uint32_t *cp);
 
 /// Validate UTF-8 code point.
 bool utf8_cp_validate(uint32_t cp);
