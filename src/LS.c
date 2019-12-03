@@ -26,6 +26,8 @@ static bool LS_checkPosition(LS self, size_t pos);
 
 struct _LexerSource_ {
 	bool utf8, interact;
+	FILE *pout;
+	const char *prompt;
 	union {
 		Str ss; // str mode or line for interact mode
 		U32Vector us; // utf-8 str mode or line for utf-8 interact mode
@@ -64,7 +66,8 @@ LS LS_newCStrSource(const char *s, bool is_utf8)
 	return self;
 }
 
-LS LS_newFileSource(FILE *fp, bool is_utf8, bool is_interact)
+LS LS_newFileSource(FILE *fp, bool is_utf8,
+		    bool is_interact, FILE *out, const char *prompt)
 {
 	if (!is_interact) {
 		Str s = Str_new();
@@ -75,6 +78,8 @@ LS LS_newFileSource(FILE *fp, bool is_utf8, bool is_interact)
 	}
 
 	LS self = LS_new(is_utf8, true);
+	self->pout = out;
+	self->prompt = prompt;
 
 	self->fs = fp;
 	if (is_utf8) {
@@ -97,6 +102,7 @@ void LS_free(LS self)
 		free(self);
 	}
 }
+
 
 int LS_char(LS self)
 {
@@ -140,6 +146,11 @@ static bool LS_eatLine(LS self)
 	bool ret = true;
 	U32Vector uline = NULL;
 	Str line = Str_new();
+
+	if (self->pout != NULL) {
+		fprintf(self->pout, "%s", self->prompt);
+	}
+
 	if (!Str_readLine(line, self->fs)) {
 		self->e = LS_EOS;
 		ret = false;
@@ -201,6 +212,9 @@ static inline LS LS_new(bool is_utf8, bool is_interact)
 	self->index = self->c = self->e = 0;
 	self->row = 1;
 	self->column = 0;
+
+	self->pout = NULL;
+	self->prompt = NULL;
 	return self;
 }
 

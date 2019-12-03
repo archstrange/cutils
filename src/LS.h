@@ -32,7 +32,8 @@ LS LS_newStrSource(Str s, bool is_utf8);
 
 LS LS_newCStrSource(const char *s, bool is_utf8);
 
-LS LS_newFileSource(FILE *fp, bool is_utf8, bool is_interact);
+LS LS_newFileSource(FILE *fp, bool is_utf8,
+		    bool is_interact, FILE *out, const char *prompt);
 
 void LS_free(LS self);
 
