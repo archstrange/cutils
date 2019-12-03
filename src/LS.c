@@ -140,7 +140,7 @@ static bool LS_eatLine(LS self)
 	bool ret = true;
 	U32Vector uline = NULL;
 	Str line = Str_new();
-	if (Str_readLine(line, self->fs) == 0) {
+	if (!Str_readLine(line, self->fs)) {
 		self->e = LS_EOS;
 		ret = false;
 		goto readdone;
@@ -206,13 +206,16 @@ static inline LS LS_new(bool is_utf8, bool is_interact)
 
 static bool LS_checkPosition(LS self, size_t pos)
 {
-	size_t len = self->utf8 ?
-		U32Vector_getLength(self->us) :
-		Str_getLength(self->ss);
+#define UPDATE_LEN(self) (self->utf8 ? \
+		U32Vector_getLength(self->us) : \
+		Str_getLength(self->ss))
+
+	size_t len = UPDATE_LEN(self);
 
 	if (self->interact) {
 		while (pos >= len) {
 			if (!LS_eatLine(self)) return false;
+			len = UPDATE_LEN(self);
 		}
 		return true;
 	}
