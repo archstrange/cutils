@@ -45,6 +45,9 @@ for t in h c; do
 	T_clone "Str_clone"
 	T_copy "Str_copy"
 	T_free "Str_free"
+	T_hash "Str_hash"
+	T_cmp "Str_cmp"
+	T_equal "Str_equal"
 }
 EOF
 done

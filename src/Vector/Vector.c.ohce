@@ -95,6 +95,83 @@ void $Vector$_free($Vector$ self)
 	}
 }
 
+int $Vector$_cmp($Vector$ self, $Vector$ right)
+{
+	if (self == right)
+		return 0;
+
+	int ret;
+	size_t len = self->length;
+	if (self->length < right->length) {
+		ret = -1;
+	} else if (self->length == right->length) {
+		ret = 0;
+	} else {
+		len = right->length;
+		ret = 1;
+	}
+
+	int cmp;
+	for (size_t i = 0; i < len; i++) {
+/* if T_cmp */
+		cmp = $T_cmp$(self->data[i], right->data[i]);
+/* else */
+		cmp = self->data[i] - right->data[i];
+/* endif */
+		if (cmp != 0)
+			return cmp;
+	}
+	return ret;
+}
+
+bool $Vector$_equal($Vector$ self, $Vector$ right)
+{
+	if (self == right)
+		return true;
+
+	if (self->length != right->length)
+		return false;
+
+	for (size_t i = 0; i < self->length; i++) {
+		if (
+/* if T_equal */
+		!$T_equal$(self->data[i], right->data[i])
+/* else */
+		self->data[i] != right->data[i]
+/* endif */
+		)
+			return false;
+	}
+	return true;
+}
+
+uint32_t $Vector$_hash($Vector$ self)
+{
+	uint32_t hash = 0;
+	for (size_t i = 0, n = self->length / 4; i < n; i++) {
+		uint32_t hash_step = 0;
+		for (size_t j = 0; j < 4; j++) {
+/* if T_hash */
+			hash_step = (hash_step << 6)
+				    + $T_hash$(self->data[(i << 2) + j]);
+/* else */
+			hash_step = (hash_step << 6) + self->data[(i << 2) + j];
+/* endif */
+		}
+		hash ^= hash_step;
+	}
+	uint32_t hash_step = 0;
+	for (size_t i = self->length - (self->length % 4); i < self->length; i++) {
+/* if T_hash */
+		hash_step = (hash_step << 6) + $T_hash$(self->data[i]);
+/* else */
+		hash_step = (hash_step << 6) + self->data[i];
+/* endif */
+	}
+	hash ^= hash_step;
+	return hash;
+}
+
 void $Vector$_dump($Vector$ self, $T$ *buffer)
 {
 	$Vector$_dumpn(self, buffer, self->length);

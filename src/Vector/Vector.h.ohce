@@ -65,6 +65,39 @@ void $Vector$_copySub($Vector$ self, $Vector$ src, size_t start, size_t n);
 /// Lifetime function: free @self object.
 void $Vector$_free($Vector$ self);
 
+/* if not Vector */
+// cmp and equal functions are helpful if you want to
+// sort a lot of Vectors or identify them.
+//
+// If element type T is object type, you should provide
+// T's cmp and equal functions, otherwise T is assumed
+// an arithmetic type.
+//
+// Elements are compared one by one, until two elements
+// are not equal. Missing element(no more elements) is
+// treated the smallest one.
+//
+// hash function is useful if you want to use it as a
+// dict key type.
+//
+// If T_hash is not available, well T should be an
+// arithmetic type too.
+//
+// function signatures:
+//	int T_cmp(T left, T right);
+//	bool T_equal(T left, T right);
+//	uint32_t T_hash(T self);
+/* endif */
+
+/// Compare two $Vector$s.
+int $Vector$_cmp($Vector$ self, $Vector$ right);
+
+/// Check equality.
+bool $Vector$_equal($Vector$ self, $Vector$ right);
+
+/// Hash this object.
+uint32_t $Vector$_hash($Vector$ self);
+
 /// Dump all elements to @buffer. @buffer must hold enough space
 /// to store all elements.
 void $Vector$_dump($Vector$ self, $T$ *buffer);
