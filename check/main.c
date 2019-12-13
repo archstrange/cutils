@@ -100,10 +100,31 @@ void test_fs_path()
 	Path_free(p);
 }/*}}}*/
 
+void test_Str()
+{
+#define HASH(cstr, len) \
+	Str_copyArray(str, cstr, len); \
+	printf("Str '" cstr "' hash: %x\n", Str_hash(str))
+
+	Str str = Str_new();
+	HASH("hello", 5);
+	HASH("hallo", 5);
+
+	HASH("qijian", 6);
+	HASH("Qijian", 6);
+
+	HASH("qijian zhang", 12);
+	HASH("Qijian Zhang", 12);
+
+	HASH("a very long string but only first char different!", 49);
+	HASH("A very long string but only first char different!", 49);
+}
+
 int main(int argc, const char *argv[])
 {
 	test_utf8();
 	test_fs_path();
+	test_Str();
 
 	return 0;
 }
