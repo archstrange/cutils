@@ -39,7 +39,7 @@
 static inline void copy_us(uint8_t *us, const uint8_t *u, size_t len);
 
 const static uint8_t OCT_TAIL[256] = {
-	[80] = // 80-BF
+	[0x80] = // 80-BF
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
