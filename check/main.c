@@ -110,6 +110,10 @@ void test_codec_base64()
 	assert(base64_enc(in, out, NULL) == 0);
 	assert(base64_dec(out, back, NULL) == 0);
 	assert(Str_equal(back, in));
+
+	assert(base64_enc(in, out, "&,") == 0);
+	assert(base64_dec(out, back, "&,") == 0);
+	assert(Str_equal(back, in));
 }/*}}}*/
 
 void test_codec_utf8()
