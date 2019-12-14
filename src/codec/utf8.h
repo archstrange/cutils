@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef CUTILS_UTF_8_H
-#define CUTILS_UTF_8_H
+#ifndef CUTILS_UTF8_H
+#define CUTILS_UTF8_H
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include "../Str.h"
+#include "../Vector/U32Vector.h"
 
 /// Validate UTF-8 char, return number of bytes of first char
 /// pointed by @u, 0 for invalid char.
@@ -38,6 +40,10 @@ bool utf8_cp_validate(uint32_t cp);
 /// Get UTF-8 char from code point @cp.
 /// Return number of bytes encoded, 0 for invalid code point.
 int utf8_char(uint32_t cp, uint8_t u[5]);
+
+int utf8_enc(U32Vector in, Str out);
+
+int utf8_dec(Str in, U32Vector out);
 
 #endif
 

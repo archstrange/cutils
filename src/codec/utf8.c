@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include "utf-8.h"
+#include "utf8.h"
 
 /// UTF8-octets = *( UTF8-char )
 /// UTF8-char   = UTF8-1 / UTF8-2 / UTF8-3 / UTF8-4
@@ -223,6 +223,44 @@ int utf8_char(uint32_t cp, uint8_t u[5])
 bool utf8_cp_validate(uint32_t cp)
 {
 	return !(cp >> 21u);
+}
+
+int utf8_enc(U32Vector in, Str out)
+{
+	if (in == NULL | out == NULL)
+		return 1;
+	Str_clear(out);
+	size_t inlen = U32Vector_getLength(in);
+
+	uint8_t c[5];
+	const uint32_t *buf = U32Vector_data(in);
+	for (size_t i = 0; i < inlen; i++) {
+		int n = utf8_char(buf[i], c);
+		if (n == 0)
+			return -1;
+		Str_appendArray(out, c, n);
+	}
+	return 0;
+}
+
+int utf8_dec(Str in, U32Vector out)
+{
+	if (in == NULL | out == NULL)
+		return 1;
+	U32Vector_clear(out);
+	size_t inlen = Str_getLength(in);
+
+	uint32_t cp;
+	const uint8_t *buf = Str_data(in);
+	for (size_t i = inlen; i > 0;) {
+		int n = utf8_codepoint_s(buf, i, &cp);
+		if (n == 0)
+			return -1;
+		U32Vector_push(out, cp);
+		buf += n;
+		i -= n;
+	}
+	return 0;
 }
 
 static inline void copy_us(uint8_t *us, const uint8_t *u, size_t len)

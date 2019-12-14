@@ -21,7 +21,7 @@
 #include <stdbool.h>
 
 #include "../src/xopt.h"
-#include "../src/utf-8.h"
+#include "../src/codec/utf8.h"
 #include "../src/Str.h"
 #include "../src/fs/Path.h"
 #include "../src/codec/base64.h"
@@ -63,25 +63,6 @@ void test_xopt(int argc, const char *argv[])
 	printf("parse opt finished!\n");
 
 	xopt_free(xopt);
-}/*}}}*/
-
-void test_utf8()
-{/*{{{*/
-	uint8_t *yes = "✅";
-	uint32_t yes_cp = 0x2705;
-	uint8_t *no = "❌";
-	uint32_t no_cp = 0x274C;
-	uint32_t cp;
-	uint8_t u[5];
-
-	assert(utf8_codepoint(yes, &cp) == strlen(yes));
-	assert(cp == yes_cp);
-	utf8_char(cp, u);
-	assert(strcmp(u, yes) == 0);
-	assert(utf8_codepoint(no, &cp) == strlen(no));
-	assert(cp == no_cp);
-	utf8_char(cp, u);
-	assert(strcmp(u, no) == 0);
 }/*}}}*/
 
 void test_fs_path()
@@ -131,12 +112,38 @@ void test_codec_base64()
 	assert(Str_equal(back, in));
 }/*}}}*/
 
+void test_codec_utf8()
+{/*{{{*/
+	uint8_t *yes = "✅";
+	uint32_t yes_cp = 0x2705;
+	uint8_t *no = "❌";
+	uint32_t no_cp = 0x274C;
+	uint32_t cp;
+	uint8_t u[5];
+
+	assert(utf8_codepoint(yes, &cp) == strlen(yes));
+	assert(cp == yes_cp);
+	utf8_char(cp, u);
+	assert(strcmp(u, yes) == 0);
+	assert(utf8_codepoint(no, &cp) == strlen(no));
+	assert(cp == no_cp);
+	utf8_char(cp, u);
+	assert(strcmp(u, no) == 0);
+
+	Str in = Str_newFromCStr("Qijian Zhang 张奇建");
+	U32Vector out = U32Vector_new();
+	Str back = Str_new();
+	assert(utf8_dec(in, out) == 0);
+	assert(utf8_enc(out, back) == 0);
+	assert(Str_equal(back, in));
+}/*}}}*/
+
 int main(int argc, const char *argv[])
 {
-	test_utf8();
 	test_fs_path();
 	test_Str();
 	test_codec_base64();
+	test_codec_utf8();
 
 	return 0;
 }

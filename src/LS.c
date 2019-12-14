@@ -15,7 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "LS.h"
-#include "utf-8.h"
+#include "codec/utf8.h"
 #include "Vector/U32Vector.h"
 
 static U32Vector codepoints(const uint8_t *u, size_t len);
