@@ -16,47 +16,60 @@
 
 #ifndef CUTILS_ENDIAN_H
 #define CUTILS_ENDIAN_H
+#include <stdint.h>
 
-/// Bytes endian swapper
+/// Byte-order swapper
+///	endian_swap(void *block, size_t size);
 ///
-/// functions:
-///	void endian_ltoh(void *block, int size);
-///	void endian_btoh(void *block, int size);
-///	void endian_htol(void *block, int size);
-///	void endian_htob(void *block, int size);
+/// Endianness convert:
+///	void endian_ltoh(void *block, size_t size);
+///	void endian_btoh(void *block, size_t size);
+///	void endian_htol(void *block, size_t size);
+///	void endian_htob(void *block, size_t size);
+///
+/// Host endianness check:
+///	bool endian_host_islittle();
+///	bool endian_host_isbig();
 ///
 /// each one swap bytes between little(l) or big(b) endianess
 /// with host(h) endianess
 
-static inline void __endian_byteswap__(void *block, int size)
+/// Swap bytes pointed by @block.
+static inline void endian_swap(void *block, size_t size)
 {
 	unsigned char *bytes = block;
-	int mid = size / 2;
+	size_t mid = size / 2;
 	size -= 1;
-	for (int i = 0; i < mid; i++) {
+	for (size_t i = 0; i < mid; i++) {
 		unsigned char tmp = bytes[i];
-		int j = size - i;
+		size_t j = size - i;
 		bytes[i] = bytes[j];
 		bytes[j] = tmp;
 	}
 }
 
-static inline void __endian_nop__(void *block, int size) {}
+static inline void __endian_nop__(void *block, size_t size) {}
 
+#ifdef __BYTE_ORDER__
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 
+#define endian_host_islittle() (!0)
+#define endian_host_isbig() (!1)
 #define endian_ltoh __endian_nop__
-#define endian_btoh __endian_byteswap__
+#define endian_btoh endian_swap
 #define endian_htol __endian_nop__
-#define endian_htob __endian_byteswap__
+#define endian_htob endian_swap
 
 #else
 
-#define endian_ltoh __endian_byteswap__
+#define endian_host_islittle() (!1)
+#define endian_host_isbig() (!0)
+#define endian_ltoh endian_swap
 #define endian_btoh __endian_nop__
-#define endian_htol __endian_byteswap__
+#define endian_htol endian_swap
 #define endian_htob __endian_nop__
 
+#endif
 #endif
 
 #endif
