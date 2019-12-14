@@ -17,11 +17,6 @@ int base64_enc(Str in, Str out, const char *replace)
 	if (in == NULL || out == NULL)
 		return 1;
 
-	Str_clear(out);
-	size_t inlen = Str_getLength(in);
-	if (inlen == 0)
-		return 0;
-
 	uint8_t table[65] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 			    "abcdefghijklmnopqrstuvwxyz"
 			    "0123456789+/=";
@@ -40,6 +35,8 @@ int base64_enc(Str in, Str out, const char *replace)
 		return 2; // bad replace!
 	}
 
+	Str_clear(out);
+	size_t inlen = Str_getLength(in);
 	const uint8_t *buf = Str_data(in);
 	for (size_t i = 0, n = inlen / 3; i < n; i += 1, buf += 3) {
 		Str_push(out, table[buf[0] >> 2]);
@@ -75,11 +72,6 @@ int base64_dec(Str in, Str out, const char *replace)
 	if (in == NULL || out == NULL)
 		return 1;
 
-	Str_clear(out);
-	size_t inlen = Str_getLength(in);
-	if (inlen == 0)
-		return 0;
-
 	uint8_t table[128] = {
 		[43] = 63, // +
 		[47] = 64, // /
@@ -107,11 +99,13 @@ int base64_dec(Str in, Str out, const char *replace)
 		return 2; // bad replace!
 	}
 	
+	Str_clear(out);
+	size_t inlen = Str_getLength(in);
 	const uint8_t *buf = Str_data(in);
 	if (padding) { // two pad chars at most.
-		if (buf[inlen - 1] == pad)
+		if (inlen != 0 && buf[inlen - 1] == pad)
 			inlen -= 1;
-		if (buf[inlen - 1] == pad)
+		if (inlen != 0 && buf[inlen - 1] == pad)
 			inlen -= 1;
 	}
 	uint8_t g1, g2, g3, g4;
