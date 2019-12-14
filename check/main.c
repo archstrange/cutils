@@ -24,6 +24,7 @@
 #include "../src/utf-8.h"
 #include "../src/Str.h"
 #include "../src/fs/Path.h"
+#include "../src/codec/base64.h"
 
 void test_xopt(int argc, const char *argv[])
 {/*{{{*/
@@ -101,7 +102,7 @@ void test_fs_path()
 }/*}}}*/
 
 void test_Str()
-{
+{/*{{{*/
 #define HASH(cstr, len) \
 	Str_copyArray(str, cstr, len); \
 	printf("Str '" cstr "' hash: %x\n", Str_hash(str))
@@ -118,13 +119,24 @@ void test_Str()
 
 	HASH("a very long string but only first char different!", 49);
 	HASH("A very long string but only first char different!", 49);
-}
+}/*}}}*/
+
+void test_codec_base64()
+{/*{{{*/
+	Str in = Str_newFromCStr("Qijian Zhang 张奇建");
+	Str out = Str_new();
+	Str back = Str_new();
+	assert(base64_enc(in, out, NULL) == 0);
+	assert(base64_dec(out, back, NULL) == 0);
+	assert(Str_equal(back, in));
+}/*}}}*/
 
 int main(int argc, const char *argv[])
 {
 	test_utf8();
 	test_fs_path();
 	test_Str();
+	test_codec_base64();
 
 	return 0;
 }
