@@ -14,7 +14,7 @@ if [ -d $include ]; then
 fi
 mkdir -p $lib
 
-sub_dirs="Vector List Queue fs codec"
+sub_dirs="Vector List Queue Dict fs codec"
 
 for sub_dir in $sub_dirs; do
 	mkdir -p $include/$sub_dir
