@@ -86,9 +86,11 @@ void test_Str()
 {/*{{{*/
 #define HASH(cstr, len) \
 	Str_copyArray(str, cstr, len); \
-	printf("Str '" cstr "' hash: %x\n", Str_hash(str))
+	hash = Str_hash(str); \
+	printf("Str '" cstr "' hash: %x, mod 7: %u\n", hash, hash % 7)
 
 	Str str = Str_new();
+	uint32_t hash;
 	HASH("hello", 5);
 	HASH("hallo", 5);
 
