@@ -1,0 +1,260 @@
+// cutils: my c utils library
+// Copyright (C) 2019  Qijian Zhang <arch.strange@foxmail.com>
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+// This file is generated from Dict.c.ohce by ohce.
+#include "$Dict$.h"
+$c_include$
+
+#define PRIMES_TABLE_SIZE (sizeof(primes_table) / sizeof(uint32_t))
+static const uint32_t primes_table[] = {
+	3, 7, 17, 37, 79, 163, 331, 673, 1361, 2729,
+	5471, 10949, 21911, 43853, 87719, 175447, 350899, 701819, 1403641, 2807303,
+};
+
+struct EntryNode {
+	struct EntryNode *next;
+	$K$ key;
+	$V$ value;
+};
+
+#define TABLE_SIZE(self) (self->fixed_size ? self->size : primes_table[self->size])
+struct cutils_$Dict$_ {
+	struct EntryNode **table;
+	size_t length, size;
+	bool fixed_size;
+};
+
+#define TABLE_INDEX(key, size) \
+(/* if K_hash */$K_hash$(key)/* else */(key)/* endif */ % (size))
+
+static void table_insertNode(struct EntryNode **table,
+			     size_t table_size,
+			     struct EntryNode *node);
+static struct EntryNode *new_node($K$ key, $V$ value);
+static void free_node(struct EntryNode *node);
+
+$Dict$ $Dict$_new()
+{
+	$Dict$ self = malloc(sizeof(*self));
+	self->length = self->size = 0;
+	self->fixed_size = false;
+	self->table = calloc(primes_table[0], sizeof(struct EntryNode *));
+	return self;
+}
+
+$Dict$ $Dict$_newWithSize(size_t size)
+{
+	$Dict$ self = malloc(sizeof(*self));
+	size = size < 3 ? 3 : size;
+	self->length = 0;
+	self->size = size;
+	self->fixed_size = true;
+	self->table = calloc(size, sizeof(struct EntryNode *));
+	return self;
+}
+
+void $Dict$_free($Dict$ self)
+{
+	if (self == NULL)
+		return;
+	size_t size = TABLE_SIZE(self);
+	for (size_t i = 0; i < size; i++) {
+		struct EntryNode *node = self->table[i];
+		while (node != NULL) {
+			struct EntryNode *tmp = node;
+			node = node->next;
+/* if K_free */
+			$K_free$(tmp->key);
+/* endif */
+/* if V_free */
+			$V_free$(tmp->value);
+/* endif */
+			free(tmp);
+		}
+	}
+	free(self->table);
+	free(self);
+}
+
+size_t $Dict$_getLength($Dict$ self)
+{
+	return self->length;
+}
+
+void $Dict$_setSize($Dict$ self, size_t size)
+{
+	size = size < 3 ? 3 : size;
+	size_t table_size = TABLE_SIZE(self);
+	if (size == table_size)
+		return;
+
+	struct EntryNode **table = calloc(size, sizeof(struct EntryNode *));
+	for (size_t i = 0; i < table_size; i++) {
+		struct EntryNode *node = self->table[i];
+		while (node != NULL) {
+			struct EntryNode *tmp = node,
+					 *new = new_node(tmp->key, tmp->value);
+			node = node->next;
+			table_insertNode(table, size, new);
+			free(tmp);
+		}
+	}
+	free(self->table);
+	self->table = table;
+	self->size = size;
+	self->fixed_size = true;
+}
+
+void $Dict$_insert($Dict$ self, $K$ key, $V$ value)
+{
+	size_t size = TABLE_SIZE(self),
+	       index = TABLE_INDEX(key, size);
+	struct EntryNode *node = self->table[index];
+	while (node != NULL) {
+		if (
+/* if K_equal */
+		    $K_equal$(key, node->key)
+/* else */
+		    key == node->key
+/* endif */
+		   ) {
+/* if V_copy */
+			$V_copy$(node->value, value);
+/* else */
+			node->value = value;
+/* endif */
+			return;
+		}
+		node = node->next;
+	}
+	struct EntryNode *new = new_node(/* if K_clone */$K_clone$(key)/* else */
+					 key/* endif */,/* if V_clone */
+					 $V_clone$(value)/* else */
+					 value/* endif */);
+	new->next = node;
+	self->table[index] = new;
+	self->length += 1;
+}
+
+bool $Dict$_find($Dict$ self, $K$ key, $V$ *value)
+{
+	size_t size = TABLE_SIZE(self),
+	       index = TABLE_INDEX(key, size);
+	struct EntryNode *node = self->table[index];
+	while (node != NULL) {
+		if (
+/* if K_equal */
+		    $K_equal$(key, node->key)
+/* else */
+		    key == node->key
+/* endif */
+		   ) {
+			*value = node->value;
+			return true;
+		}
+		node = node->next;
+	}
+	return false;
+}
+
+bool $Dict$_delete($Dict$ self, $K$ key)
+{
+	size_t size = TABLE_SIZE(self),
+	       index = TABLE_INDEX(key, size);
+	struct EntryNode *node = self->table[index],
+			 **prev_next = self->table + index;
+	while (node != NULL) {
+		if (
+/* if K_equal */
+		    $K_equal$(key, node->key)
+/* else */
+		    key == node->key
+/* endif */
+		   ) {
+			*prev_next = node->next;
+			free_node(node);
+			self->length -= 1;
+			return true;
+		}
+		prev_next = &node->next;
+		node = node->next;
+	}
+	return false;
+}
+
+/* if KVector */
+void $Dict$_getKeys($Dict$ self, $KVector$ keys)
+{
+	size_t size = TABLE_SIZE(self);
+	$KVector$_clear(keys);
+	for (size_t i = 0; i < size; i++) {
+		struct EntryNode *node = self->table[i];
+		while (node != NULL) {
+			$KVector$_push(keys, node->key);
+			node = node->next;
+		}
+	}
+}
+/* endif */
+
+/* if VVector */
+void $Dict$_getValues($Dict$ self, $VVector$ values)
+{
+	size_t size = TABLE_SIZE(self);
+	$VVector$_clear(values);
+	for (size_t i = 0; i < size; i++) {
+		struct EntryNode *node = self->table[i];
+		while (node != NULL) {
+			$VVector$_push(values, node->value);
+			node = node->next;
+		}
+	}
+}
+/* endif */
+
+static void table_insertNode(struct EntryNode **table,
+			     size_t table_size,
+			     struct EntryNode *node)
+{
+	size_t index = TABLE_INDEX(node->key, table_size);
+	if (table[index] != NULL) {
+		node->next = table[index];
+	}
+	table[index] = node;
+}
+
+static struct EntryNode *new_node($K$ key, $V$ value)
+{
+	struct EntryNode *node = malloc(sizeof(*node));
+	node->key = key;
+	node->value = value;
+	node->next = NULL;
+	return node;
+}
+
+static void free_node(struct EntryNode *node)
+{
+	if (node == NULL)
+		return;
+/* if K_free */
+	$K_free$(node->key);
+/* endif */
+/* if V_free */
+	$V_free$(node->value);
+/* endif */
+	free(node);
+}
+

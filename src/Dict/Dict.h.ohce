@@ -1,0 +1,58 @@
+// cutils: my c utils library
+// Copyright (C) 2019  Qijian Zhang <arch.strange@foxmail.com>
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+// This file is generated from Dict.h.ohce by ohce.
+/* if not Dict */
+// Dict ADT type:
+//	K: key type
+//	V: value type
+//	K_hash: K hash function: `uint32_t K_hash(K key);`
+//	K_equal: K equal-checking function: `bool K_equal(K l_key, K r_key);`
+/* endif */
+#ifndef CUTILS_DICT_$Dict$_H
+#define CUTILS_DICT_$Dict$_H
+#include <stdint.h>
+#include <stdlib.h>
+#include <stdbool.h>
+$h_include$
+
+typedef struct cutils_$Dict$_ *$Dict$;
+
+$Dict$ $Dict$_new();
+
+$Dict$ $Dict$_newWithSize(size_t size);
+
+void $Dict$_free($Dict$ self);
+
+size_t $Dict$_getLength($Dict$ self);
+
+void $Dict$_setSize($Dict$ self, size_t size);
+
+void $Dict$_insert($Dict$ self, $K$ key, $V$ value);
+
+bool $Dict$_find($Dict$ self, $K$ key, $V$ *value);
+
+bool $Dict$_delete($Dict$ self, $K$ key);
+
+/* if KVector */
+void $Dict$_getKeys($Dict$ self, $KVector$ keys);
+/* endif */
+
+/* if VVector */
+void $Dict$_getValues($Dict$ self, $VVector$ values);
+/* endif */
+
+#endif
