@@ -42,7 +42,7 @@ $Vector$ $Vector$_new();
 $Vector$ $Vector$_newWithCapacity(size_t capacity);
 
 /// Lifetime function: create a new $Vector$ object from @array.
-$Vector$ $Vector$_newFromArray(const $T$ *array, size_t length);
+$Vector$ $Vector$_newFromArray($T$ const *array, size_t length);
 
 /// Lifetime function: clone the whole @src object.
 $Vector$ $Vector$_clone($Vector$ src);
