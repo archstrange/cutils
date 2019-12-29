@@ -43,6 +43,7 @@ struct cutils_$Dict$_ {
 static void table_insertNode(struct EntryNode **table,
 			     size_t table_size,
 			     struct EntryNode *node);
+static void $Dict$_resize($Dict$ self, size_t size);
 static struct EntryNode *new_node($K$ key, $V$ value);
 static void free_node(struct EntryNode *node);
 
@@ -97,25 +98,9 @@ size_t $Dict$_getLength($Dict$ self)
 void $Dict$_setSize($Dict$ self, size_t size)
 {
 	size = size < 3 ? 3 : size;
-	size_t table_size = TABLE_SIZE(self);
-	if (size == table_size)
-		return;
-
-	struct EntryNode **table = calloc(size, sizeof(struct EntryNode *));
-	for (size_t i = 0; i < table_size; i++) {
-		struct EntryNode *node = self->table[i];
-		while (node != NULL) {
-			struct EntryNode *tmp = node,
-					 *new = new_node(tmp->key, tmp->value);
-			node = node->next;
-			table_insertNode(table, size, new);
-			free(tmp);
-		}
-	}
-	free(self->table);
-	self->table = table;
-	self->size = size;
+	$Dict$_resize(self, size);
 	self->fixed_size = true;
+	self->size = size;
 }
 
 void $Dict$_insert($Dict$ self, $K$ key, $V$ value)
@@ -147,6 +132,13 @@ void $Dict$_insert($Dict$ self, $K$ key, $V$ value)
 	new->next = node;
 	self->table[index] = new;
 	self->length += 1;
+
+	if (!self->fixed_size &&
+	    self->size + 1 < PRIMES_TABLE_SIZE &&
+	    self->length > size * 0.7) {
+		self->size += 1;
+		$Dict$_resize(self, primes_table[self->size]);
+	}
 }
 
 bool $Dict$_find($Dict$ self, $K$ key, $V$ *value)
@@ -234,6 +226,27 @@ static void table_insertNode(struct EntryNode **table,
 		node->next = table[index];
 	}
 	table[index] = node;
+}
+
+static void $Dict$_resize($Dict$ self, size_t size)
+{
+	size_t table_size = TABLE_SIZE(self);
+	if (size == table_size)
+		return;
+
+	struct EntryNode **table = calloc(size, sizeof(struct EntryNode *));
+	for (size_t i = 0; i < table_size; i++) {
+		struct EntryNode *node = self->table[i];
+		while (node != NULL) {
+			struct EntryNode *tmp = node,
+					 *new = new_node(tmp->key, tmp->value);
+			node = node->next;
+			table_insertNode(table, size, new);
+			free(tmp);
+		}
+	}
+	free(self->table);
+	self->table = table;
 }
 
 static struct EntryNode *new_node($K$ key, $V$ value)
