@@ -96,6 +96,7 @@ void $Vector$_free($Vector$ self)
 	}
 }
 
+/* if not no_cmp */
 int $Vector$_cmp($Vector$ self, $Vector$ right)
 {
 	if (self == right)
@@ -124,7 +125,9 @@ int $Vector$_cmp($Vector$ self, $Vector$ right)
 	}
 	return ret;
 }
+/* endif */
 
+/* if not no_equal */
 bool $Vector$_equal($Vector$ self, $Vector$ right)
 {
 	if (self == right)
@@ -145,7 +148,9 @@ bool $Vector$_equal($Vector$ self, $Vector$ right)
 	}
 	return true;
 }
+/* endif */
 
+/* if not no_hash */
 uint32_t $Vector$_hash($Vector$ self)
 {
 	uint32_t hash = 0;
@@ -173,6 +178,7 @@ uint32_t $Vector$_hash($Vector$ self)
 	hash ^= hash_step;
 	return hash;
 }
+/* endif */
 
 void $Vector$_dump($Vector$ self, $T$ *buffer)
 {

@@ -89,14 +89,20 @@ void $Vector$_free($Vector$ self);
 //	uint32_t T_hash(T self);
 /* endif */
 
+/* if not no_cmp */
 /// Compare two $Vector$s.
 int $Vector$_cmp($Vector$ self, $Vector$ right);
+/* endif */
 
+/* if not no_equal */
 /// Check equality.
 bool $Vector$_equal($Vector$ self, $Vector$ right);
+/* endif */
 
+/* if not no_hash */
 /// Hash this object.
 uint32_t $Vector$_hash($Vector$ self);
+/* endif */
 
 /// Dump all elements to @buffer. @buffer must hold enough space
 /// to store all elements.
