@@ -25,6 +25,7 @@ struct Path {
 };
 
 static StrVector construct_nodes(const char *path, size_t len);
+static inline bool Path_access(Path self, int mode);
 
 Path Path_new(Str source)
 {
@@ -166,6 +167,36 @@ void Path_getStr(Path self, Str str)
 		Str_push(str, '/');
 		Str_append(str, data[i]);
 	}
+}
+
+bool Path_fileExist(Path self)
+{
+	return Path_access(self, F_OK);
+}
+
+bool Path_fileReadable(Path self)
+{
+	return Path_access(self, R_OK);
+}
+
+bool Path_fileWriteable(Path self)
+{
+	return Path_access(self, W_OK);
+}
+
+bool Path_fileReadWriteable(Path self)
+{
+	return Path_access(self, R_OK || W_OK);
+}
+
+static inline bool Path_access(Path self, int mode)
+{
+	Str name = Str_new();
+	Path_getStr(self, name);
+	Str_push(name, 0);
+	bool ret = access(Str_data(name), mode);
+	Str_free(name);
+	return ret;
 }
 
 static StrVector construct_nodes(const char *path, size_t len)

@@ -73,5 +73,17 @@ void Path_refine(Path self);
 /// to open a DIR of FILE.
 void Path_getStr(Path self, Str str);
 
+/// Check @self exists at local file system.
+bool Path_fileExist(Path self);
+
+/// Readable check.
+bool Path_fileReadable(Path self);
+
+/// Writeable check.
+bool Path_fileWriteable(Path self);
+
+/// Read-writeable check.
+bool Path_fileReadWriteable(Path self);
+
 #endif
 
