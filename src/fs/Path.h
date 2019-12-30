@@ -21,13 +21,6 @@
 
 typedef struct Path *Path;
 
-enum {
-	PATH_FILE_TYPE_UNKNOWN = 0,
-	PATH_FILE_TYPE_FILE,
-	PATH_FILE_TYPE_DIR,
-	PATH_FILE_TYPE_SYM_LINK,
-};
-
 /// Create a new Path object from Str @source.
 ///
 /// If @source is NULL or empty, a current working path
