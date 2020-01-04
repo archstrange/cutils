@@ -44,8 +44,12 @@ static void table_insertNode(struct EntryNode **table,
 			     size_t table_size,
 			     struct EntryNode *node);
 static void $Dict$_resize($Dict$ self, size_t size);
+static void $Dict$_freeTable($Dict$ self);
+static void $Dict$_cloneTable($Dict$ self, $Dict$ src);
 static struct EntryNode *new_node($K$ key, $V$ value);
 static void free_node(struct EntryNode *node);
+static struct EntryNode *clone_node(const struct EntryNode *src);
+static void copy_node(struct EntryNode *node, const struct EntryNode *src);
 
 $Dict$ $Dict$_new()
 {
@@ -67,26 +71,26 @@ $Dict$ $Dict$_newWithSize(size_t size)
 	return self;
 }
 
+$Dict$ $Dict$_clone($Dict$ src)
+{
+	$Dict$ self = malloc(sizeof(*self));
+	*self = *src;
+	$Dict$_cloneTable(self, src);
+	return self;
+}
+
+void $Dict$_copy($Dict$ self, $Dict$ src)
+{
+	$Dict$_freeTable(self);
+	*self = *src;
+	$Dict$_cloneTable(self, src);
+}
+
 void $Dict$_free($Dict$ self)
 {
 	if (self == NULL)
 		return;
-	size_t size = TABLE_SIZE(self);
-	for (size_t i = 0; i < size; i++) {
-		struct EntryNode *node = self->table[i];
-		while (node != NULL) {
-			struct EntryNode *tmp = node;
-			node = node->next;
-/* if K_free */
-			$K_free$(tmp->key);
-/* endif */
-/* if V_free */
-			$V_free$(tmp->value);
-/* endif */
-			free(tmp);
-		}
-	}
-	free(self->table);
+	$Dict$_freeTable(self);
 	free(self);
 }
 
@@ -129,7 +133,7 @@ void $Dict$_insert($Dict$ self, $K$ key, $V$ value)
 					 key/* endif */,/* if V_clone */
 					 $V_clone$(value)/* else */
 					 value/* endif */);
-	new->next = node;
+	new->next = self->table[index];
 	self->table[index] = new;
 	self->length += 1;
 
@@ -249,6 +253,42 @@ static void $Dict$_resize($Dict$ self, size_t size)
 	self->table = table;
 }
 
+static void $Dict$_freeTable($Dict$ self)
+{
+	size_t size = TABLE_SIZE(self);
+	for (size_t i = 0; i < size; i++) {
+		struct EntryNode *node = self->table[i];
+		while (node != NULL) {
+			struct EntryNode *tmp = node;
+			node = node->next;
+/* if K_free */
+			$K_free$(tmp->key);
+/* endif */
+/* if V_free */
+			$V_free$(tmp->value);
+/* endif */
+			free(tmp);
+		}
+	}
+	free(self->table);
+}
+
+static void $Dict$_cloneTable($Dict$ self, $Dict$ src)
+{
+	size_t size = TABLE_SIZE(self);
+	self->table = calloc(size, sizeof(struct EntryNode *));
+
+	for (size_t i = 0; i < size; i++) {
+		struct EntryNode *src_node = src->table[i],
+				 **node = self->table + i;
+		while (src_node != NULL) {
+			*node = clone_node(src_node);
+			src_node = src_node->next;
+			node = &(*node)->next;
+		}
+	}
+}
+
 static struct EntryNode *new_node($K$ key, $V$ value)
 {
 	struct EntryNode *node = malloc(sizeof(*node));
@@ -269,5 +309,35 @@ static void free_node(struct EntryNode *node)
 	$V_free$(node->value);
 /* endif */
 	free(node);
+}
+
+static struct EntryNode *clone_node(const struct EntryNode *src)
+{
+	struct EntryNode *node = calloc(1, sizeof(*node));
+/* if K_clone */
+	node->key = $K_clone$(src->key);
+/* else */
+	node->key = src->key;
+/* endif */
+/* if V_clone */
+	node->value = $V_clone$(src->value);
+/* else */
+	node->value = src->value;
+/* endif */
+	return node;
+}
+
+static void copy_node(struct EntryNode *node, const struct EntryNode *src)
+{
+/* if K_copy */
+	$K_copy$(node->key, src->key);
+/* else */
+	node->key = src->key;
+/* endif */
+/* if V_copy */
+	$V_copy$(node->value, src->value);
+/* else */
+	node->value = src->value;
+/* endif */
 }
 

@@ -35,6 +35,10 @@ $Dict$ $Dict$_new();
 
 $Dict$ $Dict$_newWithSize(size_t size);
 
+$Dict$ $Dict$_clone($Dict$ src);
+
+void $Dict$_copy($Dict$ self, $Dict$ src);
+
 void $Dict$_free($Dict$ self);
 
 size_t $Dict$_getLength($Dict$ self);
