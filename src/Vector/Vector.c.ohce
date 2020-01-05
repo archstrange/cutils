@@ -28,6 +28,16 @@ static inline void $Vector$_realloc($Vector$ self, size_t new_capacity);
 static inline void $Vector$_init($Vector$ self, size_t capacity);
 static inline void $Vector$_final($Vector$ self);
 
+/* if T_copy */
+static inline void T_sign($T$ *dst, $T$ src)
+{
+/* if T_free */
+	$T_free$(*dst);
+/* endif */
+	*dst = src;
+}
+/* endif */
+
 $Vector$ $Vector$_new()
 {
 	return $Vector$_newWithCapacity(1);
@@ -180,26 +190,16 @@ uint32_t $Vector$_hash($Vector$ self)
 }
 /* endif */
 
-void $Vector$_dump($Vector$ self, $T$ *buffer)
+size_t $Vector$_dump($Vector$ self, $T$ *buffer)
 {
-	$Vector$_dumpn(self, buffer, self->length);
+	return $Vector$_dumpn(self, buffer, self->length);
 }
 
-void $Vector$_dumpn($Vector$ self, $T$ *buffer, size_t n)
+size_t $Vector$_dumpn($Vector$ self, $T$ *buffer, size_t n)
 {
 	n = self->length < n ? self->length : n;
-/* if T_copy */
-/* if T_clone */
-	for (size_t i = 0; i < n; i++) {
-		if (buffer[i] == NULL)
-			buffer[i] = $T_clone$(self->data[i]);
-		else
-			$T_copy$(buffer[i], self->data[i]);
-	}
-/* endif */
-/* else */
 	memcpy(buffer, self->data, sizeof($T$) * n);
-/* endif */
+	return n;
 }
 
 bool $Vector$_empty($Vector$ self)
@@ -212,26 +212,27 @@ size_t $Vector$_getLength($Vector$ self)
 	return self->length;
 }
 
+/* if T_new */
 void $Vector$_setLength($Vector$ self, size_t length)
 {
 	if (length > self->capacity) {
 		$Vector$_realloc(self, length);
 	}
-/* if T_new */
-/* if T_free */
 	if (length > self->length) {
 		for (size_t i = self->length; i < length; i++) {
 			self->data[i] = $T_new$();
 		}
-	} else {
+	}
+/* if T_free */
+	else {
 		for (size_t i = length; i < self->length; i++) {
 			$T_free$(self->data[i]);
 		}
 	}
 /* endif */
-/* endif */
 	self->length = length;
 }
+/* endif */
 
 void $Vector$_clear($Vector$ self)
 {
@@ -271,38 +272,56 @@ void $Vector$_shrink($Vector$ self)
 	$Vector$_setCapacity(self, self->length);
 }
 
+/* if T_copy */
+void __$Vector$_set_use_assign($Vector$ self, size_t index, $T$ value)
+{
+	T_sign(self->data + index, value);
+}
+
+void __$Vector$_set_use_copy($Vector$ self, size_t index, $T$ const *value)
+{
+	$T_copy$(self->data[index], *value);
+}
+/* else */
 void $Vector$_set($Vector$ self, size_t index, $T$ value)
 {
-/* if T_copy */
-	$T_copy$(self->data[index], value);
-/* else */
 	self->data[index] = value;
-/* endif */
 }
+/* endif */
 
 $T$ $Vector$_get($Vector$ self, size_t index)
 {
 	return self->data[index];
 }
 
-size_t $Vector$_insert($Vector$ self, size_t index, $T$ value)
-{
-	if (index >= self->length)
-		return self->length;
-	if (self->length >= self->capacity) {
-		$Vector$_realloc(self, self->capacity * 2);
-	}
-	size_t i = self->length;
-	while (i > index) {
-		self->data[i] = self->data[i - 1];
-		i -= 1;
-	}
+#define Vector_preInsert(self, index) \
+	if (index >= self->length) \
+		return self->length; \
+	if (self->length >= self->capacity) { \
+		$Vector$_realloc(self, self->capacity * 2); \
+	} \
+	size_t i = self->length; \
+	while (i > index) { \
+		self->data[i] = self->data[i - 1]; \
+		i -= 1; \
+	} \
+	self->length += 1
+
 /* if T_clone */
-	self->data[i] = $T_clone$(value);
+size_t __$Vector$_insert_use_clone($Vector$ self, size_t index, $T$ const *value)
+{
+	Vector_preInsert(self, index);
+	self->data[i] = $T_clone$(*value);
+	return self->length;
+}
+
+size_t __$Vector$_insert_use_assign($Vector$ self, size_t index, $T$ value)
 /* else */
-	self->data[i] = value;
+size_t $Vector$_insert($Vector$ self, size_t index, $T$ value)
 /* endif */
-	self->length += 1;
+{
+	Vector_preInsert(self, index);
+	self->data[i] = value;
 	return self->length;
 }
 
@@ -311,16 +330,26 @@ $T$ *$Vector$_data($Vector$ self)
 	return self->data;
 }
 
-size_t $Vector$_push($Vector$ self, $T$ value)
+/* if T_clone */
+size_t __$Vector$_push_use_clone($Vector$ self, $T$ const *value)
 {
 	if (self->length >= self->capacity) {
 		$Vector$_realloc(self, self->capacity * 2);
 	}
-/* if T_clone */
-	self->data[self->length] = $T_clone$(value);
+	self->data[self->length] = $T_clone$(*value);
+	self->length += 1;
+	return self->length;
+}
+
+size_t __$Vector$_push_use_assign($Vector$ self, $T$ value)
 /* else */
-	self->data[self->length] = value;
+size_t $Vector$_push($Vector$ self, $T$ value)
 /* endif */
+{
+	if (self->length >= self->capacity) {
+		$Vector$_realloc(self, self->capacity * 2);
+	}
+	self->data[self->length] = value;
 	self->length += 1;
 	return self->length;
 }

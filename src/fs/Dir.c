@@ -54,14 +54,11 @@ void Dir_entries(Dir self, StrVector names, I32Vector types)
 	StrVector_clear(names);
 	I32Vector_clear(types);
 	struct dirent *e = NULL;
-	Str name = Str_new();
 	rewinddir(self->dp);
 	while ((e = readdir(self->dp)) != NULL) {
-		Str_copyArray(name, e->d_name, strlen(e->d_name));
-		StrVector_push(names, name);
+		StrVector_push(names, Str_newFromArray(e->d_name, strlen(e->d_name)));
 		I32Vector_push(types, enttype2detype(e->d_type));
 	}
-	Str_free(name);
 }
 
 static inline int enttype2detype(int type)

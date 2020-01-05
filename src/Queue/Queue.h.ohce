@@ -60,7 +60,19 @@ $T$ $Queue$_get($Queue$ self, size_t index);
 ///
 /// If @index is not less then @self's length, nothing
 /// will be done.
+/* if T_copy */
+/// Generic method `set`.
+#define $Queue$_set(self, index, value) \
+_Generic(value, \
+	 $T$: __$Queue$_set_use_assign, \
+	 default: __$Queue$_set_use_copy \
+) (self, index, value)
+
+void __$Queue$_set_use_assign($Queue$ self, size_t index, $T$ value);
+void __$Queue$_set_use_copy($Queue$ self, size_t index, $T$ const *value);
+/* else */
 void $Queue$_set($Queue$ self, size_t index, $T$ value);
+/* endif */
 
 /// Pop head element.
 /// Returned value is undefined if @self is empty.
@@ -71,9 +83,33 @@ $T$ $Queue$_popHead($Queue$ self);
 $T$ $Queue$_popTail($Queue$ self);
 
 /// Push @value to head of @self.
+/* if T_clone */
+/// Generic method `pushHead`.
+#define $Queue$_pushHead(self, value) \
+_Generic(value, \
+	 $T$: __$Queue$_pushHead_use_assign, \
+	 default: __$Queue$_pushHead_use_clone \
+) (self, value)
+
+void __$Queue$_pushHead_use_assign($Queue$ self, $T$ value);
+void __$Queue$_pushHead_use_clone($Queue$ self, $T$ const *value);
+/* else */
 void $Queue$_pushHead($Queue$ self, $T$ value);
+/* endif */
 
 /// Push @value to tail of @self.
+/* if T_clone */
+/// Generic method `pushTail`.
+#define $Queue$_pushTail(self, value) \
+_Generic(value, \
+	 $T$: __$Queue$_pushTail_use_assign, \
+	 default: __$Queue$_pushTail_use_clone \
+) (self, value)
+
+void __$Queue$_pushTail_use_assign($Queue$ self, $T$ value);
+void __$Queue$_pushTail_use_clone($Queue$ self, $T$ const *value);
+/* else */
 void $Queue$_pushTail($Queue$ self, $T$ value);
+/* endif */
 
 #endif

@@ -106,10 +106,14 @@ uint32_t $Vector$_hash($Vector$ self);
 
 /// Dump all elements to @buffer. @buffer must hold enough space
 /// to store all elements.
-void $Vector$_dump($Vector$ self, $T$ *buffer);
+/// Note: conten of @buffer will be overwrited, if $T$ holds
+/// dynamic memorys then only pointers are dumped.
+///
+/// Return: count of elements dumped.
+size_t $Vector$_dump($Vector$ self, $T$ *buffer);
 
 /// Same as `$Vector$_dump`, but the first @n elements only.
-void $Vector$_dumpn($Vector$ self, $T$ *buffer, size_t n);
+size_t $Vector$_dumpn($Vector$ self, $T$ *buffer, size_t n);
 
 /// Check if @self if empty.
 bool $Vector$_empty($Vector$ self);
@@ -117,8 +121,10 @@ bool $Vector$_empty($Vector$ self);
 /// Get length of @self.
 size_t $Vector$_getLength($Vector$ self);
 
+/* if T_new */
 /// Set length of @self.
 void $Vector$_setLength($Vector$ self, size_t length);
+/* endif */
 
 /// Clear all elements.
 void $Vector$_clear($Vector$ self);
@@ -143,7 +149,20 @@ void $Vector$_shrink($Vector$ self);
 
 /// Same meanding as `self[index] = value`.
 /// @index must be less than length of @self.
+/* if T_copy */
+/// Generic element `set` method, pass `$T$` to assign or `$T$ *`
+/// to copy.
+#define $Vector$_set(self, index, value) \
+_Generic(value, \
+	 $T$: __$Vector$_set_use_assign, \
+	 default: __$Vector$_set_use_copy \
+) (self, index, value)
+
+void __$Vector$_set_use_assign($Vector$ self, size_t index, $T$ value);
+void __$Vector$_set_use_copy($Vector$ self, size_t index, $T$ const *value);
+/* else */
 void $Vector$_set($Vector$ self, size_t index, $T$ value);
+/* endif */
 
 /// Same meanding as `self[index]`.
 /// @index must be less than length of @self.
@@ -155,7 +174,20 @@ $T$ $Vector$_get($Vector$ self, size_t index);
 /// nothing will be done.
 ///
 /// Return length after this call.
+/* if T_clone */
+/// Generic element `insert` method, pass `$T$` to assign or `$T$ *`
+/// to clone.
+#define $Vector$_insert(self, index, value) \
+_Generic(value, \
+	 $T$: __$Vector$_insert_use_assign, \
+	 default: __$Vector$_insert_use_clone \
+) (self, index, value)
+
+size_t __$Vector$_insert_use_assign($Vector$ self, size_t index, $T$ value);
+size_t __$Vector$_insert_use_clone($Vector$ self, size_t index, $T$ const *value);
+/* else */
 size_t $Vector$_insert($Vector$ self, size_t index, $T$ value);
+/* endif */
 
 /// Get internal buffer.
 ///
@@ -163,7 +195,20 @@ size_t $Vector$_insert($Vector$ self, size_t index, $T$ value);
 $T$ *$Vector$_data($Vector$ self);
 
 /// Push @value to the back of @self.
+/* if T_clone */
+/// Generic element `push` method, pass `$T$` to assign or `$T$ *`
+/// to clone.
+#define $Vector$_push(self, value) \
+_Generic(value, \
+	 $T$: __$Vector$_push_use_assign, \
+	 default: __$Vector$_push_use_clone \
+) (self, value)
+
+size_t __$Vector$_push_use_assign($Vector$ self, $T$ value);
+size_t __$Vector$_push_use_clone($Vector$ self, $T$ const *value);
+/* else */
 size_t $Vector$_push($Vector$ self, $T$ value);
+/* endif */
 
 /// Pop out the last element. If no elements left, the returned
 /// value is undefined.

@@ -45,7 +45,18 @@ size_t $Dict$_getLength($Dict$ self);
 
 void $Dict$_setSize($Dict$ self, size_t size);
 
+/* if V_clone */
+#define $Dict$_insert(self, key, value) \
+_Generic(value, \
+	 $V$: __$Dict$_insert_use_assign, \
+	 default: __$Dict$_insert_use_clone \
+) (self, key, value)
+
+void __$Dict$_insert_use_clone($Dict$ self, $K$ key, $V$ const *value);
+void __$Dict$_insert_use_assign($Dict$ self, $K$ key, $V$ value);
+/* else */
 void $Dict$_insert($Dict$ self, $K$ key, $V$ value);
+/* endif */
 
 bool $Dict$_find($Dict$ self, $K$ key, $V$ *value);
 

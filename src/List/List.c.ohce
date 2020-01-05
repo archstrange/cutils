@@ -29,20 +29,65 @@ struct _ADT_$List$_ {
 	size_t length;
 };
 
-static inline $List$Node $List$Node_newInList($List$ list,
+/* if T_clone */
+#define Node_newInList(list, value, prev, next) \
+_Generic(value, \
+	 $T$: Node_newInList_use_assign, \
+	 default: Node_newInList_use_copy \
+) (list, value, prev, next)
+
+static inline $List$Node Node_newInList_use_copy($List$ list,
+					     $T$ const *value,
+					     $List$Node prev,
+					     $List$Node next)
+{
+	$List$Node self = malloc(sizeof(*self));
+	self->value = $T_clone$(*value);
+	self->list = list;
+	self->prev = prev;
+	self->next = next;
+	prev->next = next->prev = self;
+	return self;
+}
+
+static inline $List$Node Node_newInList_use_assign($List$ list,
+					     $T$ value,
+					     $List$Node prev,
+					     $List$Node next)
+/* else */
+static inline $List$Node Node_newInList($List$ list,
 					      $T$ value,
 					      $List$Node prev,
-					      $List$Node next);
+					      $List$Node next)
+/* endif */
+{
+	$List$Node self = malloc(sizeof(*self));
+	self->value = value;
+	self->list = list;
+	self->prev = prev;
+	self->next = next;
+	prev->next = next->prev = self;
+	return self;
+}
+
 // Return @self's next node.
 static inline $List$Node $List$Node_freeInList($List$Node self);
 
-void $List$Node_set($List$Node self, $T$ value)
-{
 /* if T_copy */
-	$T_copy$(self->value, value);
+void __$List$Node_set_use_copy($List$Node self, $T$ const *value)
+{
+	$T_copy$(self->value, *value);
+}
+
+void __$List$Node_set_use_assign($List$Node self, $T$ value)
 /* else */
-	self->value = value;
+void $List$Node_set($List$Node self, $T$ value)
 /* endif */
+{
+/* if T_free */
+	$T_free$(self->value);
+/* endif */
+	self->value = value;
 }
 
 $T$ $List$Node_get($List$Node self)
@@ -60,16 +105,40 @@ $List$Node $List$Node_getPrev($List$Node self)
 	return self->prev == &self->list->guard ? NULL : self->prev;
 }
 
-$List$Node $List$Node_insertPrev($List$Node self, $T$ value)
+#define INSERT_PREV(self, value) \
+	self->list->length += 1; \
+	return Node_newInList(self->list, value, self->prev, self)
+
+/* if T_clone */
+$List$Node __$List$Node_insertPrev_use_clone($List$Node self, $T$ const *value)
 {
-	self->list->length += 1;
-	return $List$Node_newInList(self->list, value, self->prev, self);
+	INSERT_PREV(self, value);
 }
 
-$List$Node $List$Node_insertNext($List$Node self, $T$ value)
+$List$Node __$List$Node_insertPrev_use_assign($List$Node self, $T$ value)
+/* else */
+$List$Node $List$Node_insertPrev($List$Node self, $T$ value)
+/* endif */
 {
-	self->list->length += 1;
-	$List$Node_newInList(self->list, value, self, self->next);
+	INSERT_PREV(self, value);
+}
+
+#define INSERT_NEXT(self, value) \
+	self->list->length += 1; \
+	Node_newInList(self->list, value, self, self->next)
+
+/* if T_clone */
+$List$Node __$List$Node_insertNext_use_clone($List$Node self, $T$ const *value)
+{
+	INSERT_NEXT(self, value);
+}
+
+$List$Node __$List$Node_insertNext_use_assign($List$Node self, $T$ value)
+/* else */
+$List$Node $List$Node_insertNext($List$Node self, $T$ value)
+/* endif */
+{
+	INSERT_NEXT(self, value);
 }
 
 size_t $List$Node_delete($List$Node self)
@@ -93,7 +162,11 @@ $List$ $List$_clone($List$ src)
 	$List$ self = $List$_new();
 	$List$Node n = src->guard.next;
 	while (n != &src->guard) {
+/* if T_clone */
+		$List$_pushBack(self, &n->value);
+/* else */
 		$List$_pushBack(self, n->value);
+/* endif */
 		n = n->next;
 	}
 	return self;
@@ -107,7 +180,11 @@ void $List$_copy($List$ self, $List$ src)
 	bool src_done = srcnode == &src->guard;
 	while (!dst_done || !src_done) {
 		if (dst_done) { // dst is short than src
+/* if T_clone */
+			$List$_pushBack(self, &srcnode->value);
+/* else */
 			$List$_pushBack(self, srcnode->value);
+/* endif */
 			srcnode = srcnode->next;
 			src_done = srcnode == &src->guard;
 		} else if (src_done) { // src is short than dst
@@ -152,36 +229,42 @@ size_t $List$_getLength($List$ self)
 	return self->length;
 }
 
-size_t $List$_pushFront($List$ self, $T$ value)
-{
-	$List$Node_newInList(self, value, &self->guard, self->guard.next);
-	self->length += 1;
-	return self->length;
-}
+#define PUSH_FRONT(self, value) \
+	Node_newInList(self, value, &self->guard, self->guard.next); \
+	self->length += 1; \
+	return self->length
 
-size_t $List$_pushBack($List$ self, $T$ value)
-{
-	$List$Node_newInList(self, value, self->guard.prev, &self->guard);
-	self->length += 1;
-	return self->length;
-}
-
-static inline $List$Node $List$Node_newInList($List$ list,
-					      $T$ value,
-					      $List$Node prev,
-					      $List$Node next)
-{
-	$List$Node self = malloc(sizeof(*self));
 /* if T_clone */
-	self->value = $T_clone$(value);
+size_t __$List$_pushFront_use_clone($List$ self, $T$ const *value)
+{
+	PUSH_FRONT(self, value);
+}
+
+size_t __$List$_pushFront_use_assign($List$ self, $T$ value)
 /* else */
-	self->value = value;
+size_t $List$_pushFront($List$ self, $T$ value)
 /* endif */
-	self->list = list;
-	self->prev = prev;
-	self->next = next;
-	prev->next = next->prev = self;
-	return self;
+{
+	PUSH_FRONT(self, value);
+}
+
+#define PUSH_BACK(self, value) \
+	Node_newInList(self, value, self->guard.prev, &self->guard); \
+	self->length += 1; \
+	return self->length
+
+/* if T_clone */
+size_t __$List$_pushBack_use_clone($List$ self, $T$ const *value)
+{
+	PUSH_BACK(self, value);
+}
+
+size_t __$List$_pushBack_use_assign($List$ self, $T$ value)
+/* else */
+size_t $List$_pushBack($List$ self, $T$ value)
+/* endif */
+{
+	PUSH_BACK(self, value);
 }
 
 static inline $List$Node $List$Node_freeInList($List$Node self)

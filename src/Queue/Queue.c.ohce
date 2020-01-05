@@ -101,15 +101,25 @@ $T$ $Queue$_get($Queue$ self, size_t index)
 	return self->data[(self->h + index) % self->c];
 }
 
-void $Queue$_set($Queue$ self, size_t index, $T$ value)
+/* if T_copy */
+void __$Queue$_set_use_copy($Queue$ self, size_t index, $T$ const *value)
 {
 	if (index >= LENGTH(self->h, self->t, self->c))
 		return;
-/* if T_copy */
-	$T_copy$(self->data[(self->h + index) % self->c], value);
+	$T_copy$(self->data[(self->h + index) % self->c], *value);
+}
+
+void __$Queue$_set_use_assign($Queue$ self, size_t index, $T$ value)
 /* else */
-	self->data[(self->h + index) % self->c] = value;
+void $Queue$_set($Queue$ self, size_t index, $T$ value)
 /* endif */
+{
+	if (index >= LENGTH(self->h, self->t, self->c))
+		return;
+/* if T_free */
+	$T_free$(self->data[(self->h + index) % self->c]);
+/* endif */
+	self->data[(self->h + index) % self->c] = value;
 }
 
 $T$ $Queue$_popHead($Queue$ self)
@@ -132,36 +142,54 @@ $T$ $Queue$_popTail($Queue$ self)
 	return v;
 }
 
-void $Queue$_pushHead($Queue$ self, $T$ value)
+/* if T_clone */
+void __$Queue$_pushHead_use_clone($Queue$ self, $T$ const *value)
 {
 	if (FULL(self->h, self->t, self->c)) {
 		$Queue$_resize(self);
 	}
 	DECRE(self->h, self->c);
-/* if T_clone */
-	self->data[self->h] = $T_clone$(value);
-/* else */
-	self->data[self->h] = value;
-/* endif */
+	self->data[self->h] = $T_clone$(*value);
 }
 
-void $Queue$_pushTail($Queue$ self, $T$ value)
+void __$Queue$_pushHead_use_assign($Queue$ self, $T$ value)
+/* else */
+void $Queue$_pushHead($Queue$ self, $T$ value)
+/* endif */
 {
 	if (FULL(self->h, self->t, self->c)) {
 		$Queue$_resize(self);
 	}
+	DECRE(self->h, self->c);
+	self->data[self->h] = value;
+}
+
 /* if T_clone */
-	self->data[self->t] = $T_clone$(value);
+void __$Queue$_pushTail_use_clone($Queue$ self, $T$ const *value)
+{
+	if (FULL(self->h, self->t, self->c)) {
+		$Queue$_resize(self);
+	}
+	self->data[self->t] = $T_clone$(*value);
+	INCRE(self->t, self->c);
+}
+
+void __$Queue$_pushTail_use_assign($Queue$ self, $T$ value)
 /* else */
-	self->data[self->t] = value;
+void $Queue$_pushTail($Queue$ self, $T$ value)
 /* endif */
+{
+	if (FULL(self->h, self->t, self->c)) {
+		$Queue$_resize(self);
+	}
+	self->data[self->t] = value;
 	INCRE(self->t, self->c);
 }
 
 static void $Queue$_resize($Queue$ self)
 {
 	size_t nc = 2 * self->c, j = 0;
-	$T$ *tmp = malloc(nc * sizeof($T$));
+	$T$ *tmp = calloc(nc, sizeof($T$));
 	for (size_t i = self->h; i != self->t; i = INCRE(i, self->c), j++) {
 		tmp[j] = self->data[i];
 	}
@@ -186,7 +214,7 @@ static inline void $Queue$_newInternal($Queue$ self, size_t c)
 {
 	self->c = c == 0 ? 1 : c;
 	self->h = self->t = 0;
-	self->data = malloc(sizeof($T$) * c);
+	self->data = calloc(c, sizeof($T$));
 }
 
 static inline void $Queue$_copyData($T$ *data, $Queue$ src)

@@ -119,7 +119,7 @@ void Path_cd(Path self, Path p)
 
 void Path_append(Path self, Str filename)
 {
-	StrVector_push(self->nodes, filename);
+	StrVector_push(self->nodes, &filename);
 }
 
 void Path_refine(Path self)
@@ -145,7 +145,7 @@ void Path_refine(Path self)
 				StrVector_setLength(newnodes, nlen - 1);
 			}
 		} else if (!IS_DOT(nodes[i])){
-			StrVector_push(newnodes, nodes[i]);
+			StrVector_push(newnodes, &nodes[i]);
 		}
 	}
 	StrVector_free(self->nodes);
