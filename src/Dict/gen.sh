@@ -17,4 +17,18 @@ for t in h c; do
 	V_free "Str_free"
 }
 EOF
+
+	ohce Dict.${t}.ohce > StrU32Dict.${t} <<EOF
+{
+	Dict "StrU32Dict"
+	K "Str"
+	V "uint32_t"
+	h_include '#include "../Str.h"'
+	K_clone "Str_clone"
+	K_copy "Str_copy"
+	K_free "Str_free"
+	K_hash "Str_hash"
+	K_equal "Str_equal"
+}
+EOF
 done

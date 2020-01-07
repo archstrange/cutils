@@ -20,49 +20,74 @@
 #include <string.h>
 #include <stdbool.h>
 
-#include "../src/xopt.h"
+#include "../src/xo.h"
 #include "../src/codec/utf8.h"
 #include "../src/Str.h"
 #include "../src/fs/Path.h"
 #include "../src/codec/base64.h"
 
-void test_xopt(int argc, const char *argv[])
+void test_xo(int argc, const char *argv[])
 {/*{{{*/
-	struct xoption opts[] = {
-		{ .id = 1, .flags = XOPT_SHORT | XOPT_LONG | XOPT_WITHOUT_ARG, .short_opt = 't', .long_opt = "top", .help = NULL },
-		{ .id = 2, .flags = XOPT_SHORT | XOPT_LONG | XOPT_WITHOUT_ARG, .short_opt = 'l', .long_opt = "left", .help = NULL },
-		{ .id = 3, .flags = XOPT_SHORT | XOPT_LONG | XOPT_WITHOUT_ARG, .short_opt = 'b', .long_opt = "buttom", .help = NULL },
-		{ .id = 4, .flags = XOPT_SHORT | XOPT_LONG | XOPT_WITHOUT_ARG, .short_opt = 'r', .long_opt = "right", .help = NULL },
-		{ .id = 5, .flags = XOPT_SHORT | XOPT_LONG | XOPT_WITH_ARG, .short_opt = 'n', .long_opt = "north", .help = NULL },
-		{ .id = 6, .flags = XOPT_SHORT | XOPT_LONG | XOPT_WITH_ARG, .short_opt = 'w', .long_opt = "weast", .help = NULL },
-		{ .id = 7, .flags = XOPT_SHORT | XOPT_LONG | XOPT_WITH_ARG, .short_opt = 's', .long_opt = "south", .help = NULL },
-		{ .id = 8, .flags = XOPT_SHORT | XOPT_LONG | XOPT_WITH_ARG, .short_opt = 'e', .long_opt = "east", .help = NULL },
-	};
-	Xopt xopt = xopt_new(argc, argv, 8, opts);
+	struct xo_entry options[] = {
+		{ .type = XO_ENTRY_SHORT, .s = 'a' },
+		{ .type = XO_ENTRY_SHORT, .s = 'b' },
+		{ .type = XO_ENTRY_SHORT, .s = 'c' },
 
-	int id;
-	while ((id = xopt_get(xopt)) != -2) {
-		switch (id) {
-		case 1: case 2: case 3: case 4:
-			printf("get option -%c | --%s\n", opts[id - 1].short_opt, opts[id - 1].long_opt);
-			break;
-		case 5: case 6: case 7: case 8:
-			printf("get option -%c | --%s ", opts[id - 1].short_opt, opts[id - 1].long_opt);
-			const char *arg = xopt_current_arg(xopt);
-			if (arg != NULL) printf("with argument %s\n", arg);
-			else printf("without argument\n");
-			break;
-		case 0:
-			printf("get argument %s\n", xopt_current_arg(xopt));
-			break;
-		case -1:
-			printf("get a invalid option %s\n", xopt_current_opt(xopt));
-			break;
+		{ .type = XO_ENTRY_SHORT | XO_ENTRY_ARG, .s = 'A' },
+		{ .type = XO_ENTRY_SHORT | XO_ENTRY_ARG, .s = 'B' },
+		{ .type = XO_ENTRY_SHORT | XO_ENTRY_ARG, .s = 'C' },
+
+		{ .type = XO_ENTRY_LONG, .l = "aaa" },
+		{ .type = XO_ENTRY_LONG, .l = "bbb" },
+		{ .type = XO_ENTRY_LONG, .l = "ccc" },
+
+		{ .type = XO_ENTRY_LONG | XO_ENTRY_ARG, .l = "AAA" },
+		{ .type = XO_ENTRY_LONG | XO_ENTRY_ARG, .l = "BBB" },
+		{ .type = XO_ENTRY_LONG | XO_ENTRY_ARG, .l = "CCC" },
+
+		{ .type = XO_ENTRY_SHORT | XO_ENTRY_LONG, .s = 'x', .l = "xxx"},
+		{ .type = XO_ENTRY_SHORT | XO_ENTRY_LONG, .s = 'y', .l = "yyy"},
+		{ .type = XO_ENTRY_SHORT | XO_ENTRY_LONG, .s = 'z', .l = "zzz"},
+
+		{ .type = XO_ENTRY_SHORT | XO_ENTRY_LONG | XO_ENTRY_ARG,
+			.s = 'X', .l = "XXX"
+		},
+		{ .type = XO_ENTRY_SHORT | XO_ENTRY_LONG | XO_ENTRY_ARG,
+			.s = 'Y', .l = "YYY"
+		},
+		{ .type = XO_ENTRY_SHORT | XO_ENTRY_LONG | XO_ENTRY_ARG,
+			.s = 'Z', .l = "ZZZ"
+		},
+		{ .type = 0 },
+	};
+	StrVector args = StrVector_new();
+
+	if (xo(argc, argv, options, args) != 0) exit(1);
+
+	printf("Test xo:\n");
+	struct xo_entry *e = options;
+	while (e->type != 0) {
+		if (e->type & XO_ENTRY_MET) {
+			fputs("\tmet: ", stdout);
+			if (e->type & XO_ENTRY_SHORT) printf("-%c ", e->s);
+			if (e->type & XO_ENTRY_LONG) printf("--%s ", e->l);
+			if (e->type & XO_ENTRY_ARG) Str_print(e->arg, stdout);
+			putc('\n', stdout);
+		}
+		e += 1;
+	}
+
+	size_t args_n = StrVector_getLength(args);
+	if (args_n != 0) {
+		puts("has args:");
+		for (size_t i = 0; i < args_n; i++) {
+			fputs("\t", stdout);
+			Str_echo(StrVector_get(args, i), stdout);
 		}
 	}
-	printf("parse opt finished!\n");
 
-	xopt_free(xopt);
+	StrVector_free(args);
+	xo_free_args(options);
 }/*}}}*/
 
 void test_fs_path()
