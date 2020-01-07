@@ -99,6 +99,9 @@ static int xo_fill_entries(struct xo *self)
 			continue;
 		}
 
+		// TODO this routine doesn't support combined short options
+		// like '-aBkD arg-of-D'. Todo this, we can let xo_opt2index
+		// deal with '-aBk' no-arg options
 		index = xo_opt2index(self, self->argv[i]);
 		if (index == 0) goto badOption;
 		entry = &self->entries[index - 1];
@@ -120,7 +123,8 @@ static int xo_fill_entries(struct xo *self)
 
 badOption:
 	fprintf(stderr,
-		"\t" SGR(FG_RED, "%s") "is not a valid option!\n",
+		"BAD options:\n"
+		"\t" SGR(FG_RED, "%s") " is not a valid option!\n",
 		self->argv[i]);
 	return -1;
 }
