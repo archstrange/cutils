@@ -171,6 +171,7 @@ void test_codec_utf8()
 
 int main(int argc, const char *argv[])
 {
+	test_xo(argc, argv);
 	test_fs_path();
 	test_Str();
 	test_codec_base64();
