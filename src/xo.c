@@ -64,6 +64,7 @@ static int xo_fill_tables(struct xo *self)
 			StrU32Dict_insert(self->l_table, key, i);
 		}
 		i += 1;
+		e += 1;
 	}
 
 	Str_free(key);
