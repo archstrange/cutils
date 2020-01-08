@@ -2,6 +2,17 @@
 #include "cprint.h"
 #include "Dict/StrU32Dict.h"
 
+#define MSG_INV_OPT \
+	"an invalid option"
+#define MSG_MIS_ARG \
+	"missing an argument"
+#define MSG_WNG_POS \
+	"at the wrong position, since it needs an argument right after it"
+
+#define FILL_OPTARG(e, s) \
+	if (e->arg == NULL) e->arg = Str_newFromCStr(s); \
+	else Str_copyArray(e->arg, s, CStr_len(s))
+
 struct xo {
 	int argc;
 	const char **argv;
@@ -12,11 +23,17 @@ struct xo {
 	// entry index start from 1
 	uint32_t s_table[128];
 	StrU32Dict l_table;
+
+	int i; // current option index
 };
 
-static int xo_fill_tables(struct xo *self);
-static int xo_fill_entries(struct xo *self);
-static uint32_t xo_opt2index(struct xo *self, const char *opt);
+static bool xo_fill_tables(struct xo *self);
+static bool xo_fill_entries(struct xo *self);
+static inline bool xo_read_option(struct xo *self);
+static bool xo_met_long_option(struct xo *self);
+static bool xo_met_short_option(struct xo *self);
+static inline void xo_bad_long_option(struct xo *self, const char *msg);
+static inline void xo_bad_short_option(struct xo *self, char name, const char *msg);
 
 // build a short options table: s --> entry
 // and a long options table: l --> entry
@@ -32,22 +49,27 @@ int xo(int argc, const char *argv[], struct xo_entry entries[], StrVector args)
 		.entries = entries,
 		.args = args,
 		.s_table = { 0 },
-		.l_table = StrU32Dict_new()
+		.l_table = StrU32Dict_new(),
+		.i = 1,
 	};
 	StrVector_clear(args);
-	ret = xo_fill_tables(&self);
-	if (ret != 0) goto done;
-	ret = xo_fill_entries(&self);
+	if (!xo_fill_tables(&self)) {
+		ret = 1;
+		goto done;
+	}
+
+	if (!xo_fill_entries(&self))
+		ret = -1;
 
 done:
 	StrU32Dict_free(self.l_table);
 	return ret;
 }
 
-static int xo_fill_tables(struct xo *self)
+static bool xo_fill_tables(struct xo *self)
 {
 	uint32_t i = 1;
-	int ret = 0;
+	bool ret = true;
 	struct xo_entry *e = self->entries;
 	Str key = Str_new();
 	while (e->type != 0) {
@@ -55,7 +77,7 @@ static int xo_fill_tables(struct xo *self)
 			if ((unsigned char)e->s < 127) {
 				self->s_table[e->s] = i;
 			} else {
-				ret = 1;
+				ret = false;
 				break;
 			}
 		}
@@ -71,61 +93,110 @@ static int xo_fill_tables(struct xo *self)
 	return ret;
 }
 
-// @opt: "-...."
-static uint32_t xo_opt2index(struct xo *self, const char *opt)
+static bool xo_fill_entries(struct xo *self)
 {
-	uint32_t index = 0;
-	Str key = Str_new();
-	size_t len = CStr_len(opt);
-	if (len > 2 && opt[1] == '-') { // "--..."
-		Str_copyArray(key, opt + 2, len - 2);
-		if (!StrU32Dict_find(self->l_table, key, &index)) index = 0;
-	} else if ((unsigned char)opt[1] < 127){
-		index = self->s_table[opt[1]];
+	const char *opt;
+	for (; self->i < self->argc; self->i++) {
+		opt = self->argv[self->i];
+		if (opt[0] != '-' || opt[1] == 0) {
+			StrVector_push(self->args, Str_newFromCStr(opt));
+		} else {
+			if (!xo_read_option(self)) return false;
+		}
 	}
-
-	Str_free(key);
-	return index;
+	return true;
 }
 
-static int xo_fill_entries(struct xo *self)
+static inline bool xo_read_option(struct xo *self)
 {
-	int i = 1;
-	uint32_t index = 0;
-	struct xo_entry *entry;
-	for (; i < self->argc; i++) {
-		if (self->argv[i][0] != '-' || self->argv[i][1] == 0) {
-			StrVector_push(self->args, Str_newFromCStr(self->argv[i]));
-			continue;
-		}
-
-		// TODO this routine doesn't support combined short options
-		// like '-aBkD arg-of-D'. Todo this, we can let xo_opt2index
-		// deal with '-aBk' no-arg options
-		index = xo_opt2index(self, self->argv[i]);
-		if (index == 0) goto badOption;
-		entry = &self->entries[index - 1];
-		entry->type |= XO_ENTRY_MET;
-
-		if (!(entry->type & XO_ENTRY_ARG))
-			continue;
-
-		i += 1;
-		if (i >= self->argc)
-			break;
-
-		if (entry->arg == NULL)
-			entry->arg = Str_newFromCStr(self->argv[i]);
-		else
-			Str_copyArray(entry->arg, self->argv[1], CStr_len(self->argv[i]));
+	const char *opt = self->argv[self->i];
+	if (opt[1] == '-' && opt[2] != 0) {
+		return xo_met_long_option(self);
+	} else {
+		return xo_met_short_option(self);
 	}
-	return 0;
+}
 
-badOption:
+static bool xo_met_long_option(struct xo *self)
+{
+	bool ret = false;
+	uint32_t index = 0;
+	const char *msg = NULL;
+	Str key = Str_newFromCStr(self->argv[self->i] + 2);
+	if (!StrU32Dict_find(self->l_table, key, &index)) {
+		msg = MSG_INV_OPT;
+		goto error;
+	}
+
+	struct xo_entry *e = &self->entries[index - 1];
+	e->type |= XO_ENTRY_MET;
+	if (e->type & XO_ENTRY_ARG) {
+		if (self->i + 1 >= self->argc) {
+			msg = MSG_MIS_ARG;
+			goto error;
+		}
+		self->i += 1;
+		FILL_OPTARG(e, self->argv[self->i]);
+	}
+	ret = true;
+error:
+	if (msg != NULL) xo_bad_long_option(self, msg);
+	Str_free(key);
+	return ret;
+}
+
+static bool xo_met_short_option(struct xo *self)
+{
+	uint32_t index = 0;
+	struct xo_entry *e;
+	const char *opt = self->argv[self->i] + 1;
+
+again:
+	if ((unsigned char)*opt >= 127 || self->s_table[*opt] == 0) {
+		xo_bad_short_option(self, *opt, MSG_INV_OPT);
+		return false;
+	}
+
+	e = &self->entries[self->s_table[*opt] - 1];
+	e->type |= XO_ENTRY_MET;
+
+	if (e->type & XO_ENTRY_ARG) {
+		if (opt[1] != 0) {
+			xo_bad_short_option(self, *opt, MSG_WNG_POS);
+			return false;
+		}
+		if (self->i + 1 >= self->argc) {
+			xo_bad_short_option(self, *opt, MSG_MIS_ARG);
+			return false;
+		}
+		self->i += 1;
+		FILL_OPTARG(e, self->argv[self->i]);
+		return true;
+	}
+
+	opt += 1;
+	if (*opt != 0)
+		goto again;
+	return true;
+}
+
+static inline void xo_bad_long_option(struct xo *self, const char *msg)
+{
 	fprintf(stderr,
-		"BAD options:\n"
-		"\t" SGR(FG_RED, "%s") " is not a valid option!\n",
-		self->argv[i]);
-	return -1;
+		SGR(FG_RED, "ERROR") ": option '"
+		SGR(FG_RED, "%s") "' is %s\n",
+		self->argv[self->i],
+		msg);
+}
+
+static inline void xo_bad_short_option(struct xo *self, char name, const char *msg)
+{
+	fprintf(stderr,
+		SGR(FG_RED, "ERROR") ": option '"
+		SGR(FG_RED, "%c") "' in "
+		SGR(UNDERLINE, "%s") " is %s\n",
+		name,
+		self->argv[self->i],
+		msg);
 }
 

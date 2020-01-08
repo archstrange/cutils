@@ -44,12 +44,10 @@ struct xo_entry {
 /// @argc must be the len of @argv, and @argv[0] will be ignored
 /// since it's the program's name.
 ///
-/// Return: TODO
+/// Return:
 ///   0: success
-///   1: bad short option
+///   1: bad entries
 ///   -1: bad option in @argv
-///   positive: something wrong about arguments
-///   negative: other error
 int xo(int argc, const char *argv[], struct xo_entry entries[], StrVector args);
 
 /// free all arg Str objects in @entries.
