@@ -72,9 +72,9 @@ static inline size_t Str_print(Str self, FILE *out)
 /// Same as @Str_print but appended a newline.
 static inline size_t Str_echo(Str self, FILE *out)
 {
-	Str_appendArray(self, "\n", 2);
+	Str_appendArray(self, "\n", 1);
 	size_t s = Str_print(self, out);
-	Str_pop(self);
+	fputc('\n', out);
 	Str_pop(self);
 	return s;
 }
