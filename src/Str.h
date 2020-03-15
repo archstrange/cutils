@@ -99,4 +99,12 @@ static inline bool Str_readLine(Str self, FILE *fp)
 	return c != EOF;
 }
 
+// cat 2 strings to create a new one
+static inline Str Str_newFrom2(Str s1, Str s2)
+{
+	Str self = Str_clone(s1);
+	Str_append(s2);
+	return self;
+}
+
 #endif
