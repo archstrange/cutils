@@ -103,7 +103,7 @@ static inline bool Str_readLine(Str self, FILE *fp)
 static inline Str Str_newFrom2(Str s1, Str s2)
 {
 	Str self = Str_clone(s1);
-	Str_append(s2);
+	Str_append(self, s2);
 	return self;
 }
 
