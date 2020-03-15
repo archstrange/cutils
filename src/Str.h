@@ -107,4 +107,10 @@ static inline Str Str_newFrom2(Str s1, Str s2)
 	return self;
 }
 
+static inline char *Str_cstr(Str self)
+{
+	Str_asCStr(self);
+	return Str_data(self);
+}
+
 #endif
