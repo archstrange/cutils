@@ -42,7 +42,7 @@ $Vector$ $Vector$_new();
 $Vector$ $Vector$_newWithCapacity(size_t capacity);
 
 /// Lifetime function: create a new $Vector$ object from @array.
-$Vector$ $Vector$_newFromArray($T$ const *array, size_t length);
+$Vector$ $Vector$_newFromArray(const $T$ *array, size_t length);
 
 /// Lifetime function: clone the whole @src object.
 $Vector$ $Vector$_clone($Vector$ src);
@@ -51,7 +51,7 @@ $Vector$ $Vector$_clone($Vector$ src);
 void $Vector$_copy($Vector$ self, $Vector$ src);
 
 /// Copy the first @n elements of @src to @self.
-void $Vector$_copyArray($Vector$ self, $T$ const *array, size_t n);
+void $Vector$_copyArray($Vector$ self, const $T$ *array, size_t n);
 
 /// Copy @n elements of @src started at @start to @self.
 ///
@@ -159,7 +159,7 @@ _Generic(value, \
 ) (self, index, value)
 
 void __$Vector$_set_use_assign($Vector$ self, size_t index, $T$ value);
-void __$Vector$_set_use_copy($Vector$ self, size_t index, $T$ const *value);
+void __$Vector$_set_use_copy($Vector$ self, size_t index, const $T$ *value);
 /* else */
 void $Vector$_set($Vector$ self, size_t index, $T$ value);
 /* endif */
@@ -184,7 +184,7 @@ _Generic(value, \
 ) (self, index, value)
 
 size_t __$Vector$_insert_use_assign($Vector$ self, size_t index, $T$ value);
-size_t __$Vector$_insert_use_clone($Vector$ self, size_t index, $T$ const *value);
+size_t __$Vector$_insert_use_clone($Vector$ self, size_t index, const $T$ *value);
 /* else */
 size_t $Vector$_insert($Vector$ self, size_t index, $T$ value);
 /* endif */
@@ -205,7 +205,7 @@ _Generic(value, \
 ) (self, value)
 
 size_t __$Vector$_push_use_assign($Vector$ self, $T$ value);
-size_t __$Vector$_push_use_clone($Vector$ self, $T$ const *value);
+size_t __$Vector$_push_use_clone($Vector$ self, const $T$ *value);
 /* else */
 size_t $Vector$_push($Vector$ self, $T$ value);
 /* endif */

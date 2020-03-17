@@ -36,10 +36,10 @@ typedef struct _ADT_$List$Node_ *$List$Node;
 #define $List$Node_set(self, value) \
 _Generic(value, \
 	 $T$: __$List$Node_set_use_assign, \
-	 $T$ *: __$List$Node_set_use_copy \
+	 default: __$List$Node_set_use_copy \
 ) (self, value)
 
-void __$List$Node_set_use_copy($List$Node self, $T$ const *value);
+void __$List$Node_set_use_copy($List$Node self, const $T$ *value);
 void __$List$Node_set_use_assign($List$Node self, $T$ value);
 /* else */
 void $List$Node_set($List$Node self, $T$ value);
@@ -60,10 +60,10 @@ $List$Node $List$Node_getPrev($List$Node self);
 #define $List$Node_insertPrev(self, value) \
 _Generic(value, \
 	 $T$: __$List$Node_insertPrev_use_assign, \
-	 $T$ *: __$List$Node_insertPrev_use_clone \
+	 default: __$List$Node_insertPrev_use_clone \
 ) (self, value)
 
-$List$Node __$List$Node_insertPrev_use_clone($List$Node self, $T$ const *value);
+$List$Node __$List$Node_insertPrev_use_clone($List$Node self, const $T$ *value);
 $List$Node __$List$Node_insertPrev_use_assign($List$Node self, $T$ value);
 /* else */
 $List$Node $List$Node_insertPrev($List$Node self, $T$ value);
@@ -75,10 +75,10 @@ $List$Node $List$Node_insertPrev($List$Node self, $T$ value);
 #define $List$Node_insertNext(self, value) \
 _Generic(value, \
 	 $T$: __$List$Node_insertNext_use_assign, \
-	 $T$ *: __$List$Node_insertNext_use_clone \
+	 default: __$List$Node_insertNext_use_clone \
 ) (self, value)
 
-$List$Node __$List$Node_insertNext_use_clone($List$Node self, $T$ const *value);
+$List$Node __$List$Node_insertNext_use_clone($List$Node self, const $T$ *value);
 $List$Node __$List$Node_insertNext_use_assign($List$Node self, $T$ value);
 /* else */
 $List$Node $List$Node_insertNext($List$Node self, $T$ value);
@@ -110,10 +110,10 @@ size_t $List$_getLength($List$ self);
 #define $List$_pushFront(self, value) \
 _Generic(value, \
 	 $T$: __$List$_pushFront_use_assign, \
-	 $T$ *: __$List$_pushFront_use_clone \
+	 default: __$List$_pushFront_use_clone \
 ) (self, value)
 
-size_t __$List$_pushFront_use_clone($List$ self, $T$ const *value);
+size_t __$List$_pushFront_use_clone($List$ self, const $T$ *value);
 size_t __$List$_pushFront_use_assign($List$ self, $T$ value);
 /* else */
 size_t $List$_pushFront($List$ self, $T$ value);
@@ -123,10 +123,10 @@ size_t $List$_pushFront($List$ self, $T$ value);
 #define $List$_pushBack(self, value) \
 _Generic(value, \
 	 $T$: __$List$_pushBack_use_assign, \
-	 $T$ *: __$List$_pushBack_use_clone \
+	 default: __$List$_pushBack_use_clone \
 ) (self, value)
 
-size_t __$List$_pushBack_use_clone($List$ self, $T$ const *value);
+size_t __$List$_pushBack_use_clone($List$ self, const $T$ *value);
 size_t __$List$_pushBack_use_assign($List$ self, $T$ value);
 /* else */
 size_t $List$_pushBack($List$ self, $T$ value);

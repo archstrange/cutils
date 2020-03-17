@@ -69,7 +69,7 @@ _Generic(value, \
 ) (self, index, value)
 
 void __$Queue$_set_use_assign($Queue$ self, size_t index, $T$ value);
-void __$Queue$_set_use_copy($Queue$ self, size_t index, $T$ const *value);
+void __$Queue$_set_use_copy($Queue$ self, size_t index, const $T$ *value);
 /* else */
 void $Queue$_set($Queue$ self, size_t index, $T$ value);
 /* endif */
@@ -92,7 +92,7 @@ _Generic(value, \
 ) (self, value)
 
 void __$Queue$_pushHead_use_assign($Queue$ self, $T$ value);
-void __$Queue$_pushHead_use_clone($Queue$ self, $T$ const *value);
+void __$Queue$_pushHead_use_clone($Queue$ self, const $T$ *value);
 /* else */
 void $Queue$_pushHead($Queue$ self, $T$ value);
 /* endif */
@@ -107,7 +107,7 @@ _Generic(value, \
 ) (self, value)
 
 void __$Queue$_pushTail_use_assign($Queue$ self, $T$ value);
-void __$Queue$_pushTail_use_clone($Queue$ self, $T$ const *value);
+void __$Queue$_pushTail_use_clone($Queue$ self, const $T$ *value);
 /* else */
 void $Queue$_pushTail($Queue$ self, $T$ value);
 /* endif */

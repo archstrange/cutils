@@ -109,7 +109,7 @@ void $Dict$_setSize($Dict$ self, size_t size)
 }
 
 /* if V_clone */
-void __$Dict$_insert_use_clone($Dict$ self, $K$ key, $V$ const *value)
+void __$Dict$_insert_use_clone($Dict$ self, $K$ key, const $V$ *value)
 {
 	size_t size = TABLE_SIZE(self),
 	       index = TABLE_INDEX(key, size);

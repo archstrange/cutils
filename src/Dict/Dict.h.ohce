@@ -52,7 +52,7 @@ _Generic(value, \
 	 default: __$Dict$_insert_use_clone \
 ) (self, key, value)
 
-void __$Dict$_insert_use_clone($Dict$ self, $K$ key, $V$ const *value);
+void __$Dict$_insert_use_clone($Dict$ self, $K$ key, const $V$ *value);
 void __$Dict$_insert_use_assign($Dict$ self, $K$ key, $V$ value);
 /* else */
 void $Dict$_insert($Dict$ self, $K$ key, $V$ value);
