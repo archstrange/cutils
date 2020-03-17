@@ -107,7 +107,7 @@ $List$Node $List$_getTail($List$ self);
 size_t $List$_getLength($List$ self);
 
 /* if T_clone */
-#define $List$Node_pushFront(self, value) \
+#define $List$_pushFront(self, value) \
 _Generic(value, \
 	 $T$: __$List$_pushFront_use_assign, \
 	 $T$ *: __$List$_pushFront_use_clone \
