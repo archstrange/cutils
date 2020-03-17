@@ -37,7 +37,7 @@ _Generic(value, \
 ) (list, value, prev, next)
 
 static inline $List$Node Node_newInList_use_copy($List$ list,
-					     const $T$ *value,
+					     $T$ *value,
 					     $List$Node prev,
 					     $List$Node next)
 {
@@ -74,7 +74,7 @@ static inline $List$Node Node_newInList($List$ list,
 static inline $List$Node $List$Node_freeInList($List$Node self);
 
 /* if T_copy */
-void __$List$Node_set_use_copy($List$Node self, const $T$ *value)
+void __$List$Node_set_use_copy($List$Node self, $T$ *value)
 {
 	$T_copy$(self->value, *value);
 }
@@ -110,7 +110,7 @@ $List$Node $List$Node_getPrev($List$Node self)
 	return Node_newInList(self->list, value, self->prev, self)
 
 /* if T_clone */
-$List$Node __$List$Node_insertPrev_use_clone($List$Node self, const $T$ *value)
+$List$Node __$List$Node_insertPrev_use_clone($List$Node self, $T$ *value)
 {
 	INSERT_PREV(self, value);
 }
@@ -128,7 +128,7 @@ $List$Node $List$Node_insertPrev($List$Node self, $T$ value)
 	Node_newInList(self->list, value, self, self->next)
 
 /* if T_clone */
-$List$Node __$List$Node_insertNext_use_clone($List$Node self, const $T$ *value)
+$List$Node __$List$Node_insertNext_use_clone($List$Node self, $T$ *value)
 {
 	INSERT_NEXT(self, value);
 }
@@ -235,7 +235,7 @@ size_t $List$_getLength($List$ self)
 	return self->length
 
 /* if T_clone */
-size_t __$List$_pushFront_use_clone($List$ self, const $T$ *value)
+size_t __$List$_pushFront_use_clone($List$ self, $T$ *value)
 {
 	PUSH_FRONT(self, value);
 }
@@ -254,7 +254,7 @@ size_t $List$_pushFront($List$ self, $T$ value)
 	return self->length
 
 /* if T_clone */
-size_t __$List$_pushBack_use_clone($List$ self, const $T$ *value)
+size_t __$List$_pushBack_use_clone($List$ self, $T$ *value)
 {
 	PUSH_BACK(self, value);
 }

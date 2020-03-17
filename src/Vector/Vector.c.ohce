@@ -278,7 +278,7 @@ void __$Vector$_set_use_assign($Vector$ self, size_t index, $T$ value)
 	T_sign(self->data + index, value);
 }
 
-void __$Vector$_set_use_copy($Vector$ self, size_t index, $T$ const *value)
+void __$Vector$_set_use_copy($Vector$ self, size_t index, $T$ *value)
 {
 	$T_copy$(self->data[index], *value);
 }
@@ -308,7 +308,7 @@ $T$ $Vector$_get($Vector$ self, size_t index)
 	self->length += 1
 
 /* if T_clone */
-size_t __$Vector$_insert_use_clone($Vector$ self, size_t index, $T$ const *value)
+size_t __$Vector$_insert_use_clone($Vector$ self, size_t index, $T$ *value)
 {
 	Vector_preInsert(self, index);
 	self->data[i] = $T_clone$(*value);
@@ -331,7 +331,7 @@ $T$ *$Vector$_data($Vector$ self)
 }
 
 /* if T_clone */
-size_t __$Vector$_push_use_clone($Vector$ self, $T$ const *value)
+size_t __$Vector$_push_use_clone($Vector$ self, $T$ *value)
 {
 	if (self->length >= self->capacity) {
 		$Vector$_realloc(self, self->capacity * 2);

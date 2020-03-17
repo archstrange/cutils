@@ -39,7 +39,7 @@ _Generic(value, \
 	 default: __$List$Node_set_use_copy \
 ) (self, value)
 
-void __$List$Node_set_use_copy($List$Node self, const $T$ *value);
+void __$List$Node_set_use_copy($List$Node self, $T$ *value);
 void __$List$Node_set_use_assign($List$Node self, $T$ value);
 /* else */
 void $List$Node_set($List$Node self, $T$ value);
@@ -63,7 +63,7 @@ _Generic(value, \
 	 default: __$List$Node_insertPrev_use_clone \
 ) (self, value)
 
-$List$Node __$List$Node_insertPrev_use_clone($List$Node self, const $T$ *value);
+$List$Node __$List$Node_insertPrev_use_clone($List$Node self, $T$ *value);
 $List$Node __$List$Node_insertPrev_use_assign($List$Node self, $T$ value);
 /* else */
 $List$Node $List$Node_insertPrev($List$Node self, $T$ value);
@@ -78,7 +78,7 @@ _Generic(value, \
 	 default: __$List$Node_insertNext_use_clone \
 ) (self, value)
 
-$List$Node __$List$Node_insertNext_use_clone($List$Node self, const $T$ *value);
+$List$Node __$List$Node_insertNext_use_clone($List$Node self, $T$ *value);
 $List$Node __$List$Node_insertNext_use_assign($List$Node self, $T$ value);
 /* else */
 $List$Node $List$Node_insertNext($List$Node self, $T$ value);
@@ -113,7 +113,7 @@ _Generic(value, \
 	 default: __$List$_pushFront_use_clone \
 ) (self, value)
 
-size_t __$List$_pushFront_use_clone($List$ self, const $T$ *value);
+size_t __$List$_pushFront_use_clone($List$ self, $T$ *value);
 size_t __$List$_pushFront_use_assign($List$ self, $T$ value);
 /* else */
 size_t $List$_pushFront($List$ self, $T$ value);
@@ -126,7 +126,7 @@ _Generic(value, \
 	 default: __$List$_pushBack_use_clone \
 ) (self, value)
 
-size_t __$List$_pushBack_use_clone($List$ self, const $T$ *value);
+size_t __$List$_pushBack_use_clone($List$ self, $T$ *value);
 size_t __$List$_pushBack_use_assign($List$ self, $T$ value);
 /* else */
 size_t $List$_pushBack($List$ self, $T$ value);
